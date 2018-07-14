@@ -16,80 +16,79 @@
 #include <cstring>  // for strncat
 #include <string>   // for strstr, strchr
 
-#if ASAP_USE_EXECINFO
-
-// __has_include is currently supported by GCC and Clang. However GCC 4.9 may have issues and
-// returns 1 for 'defined( __has_include )', while '__has_include' is actually not supported:
+// __has_include is currently supported by GCC and Clang. However GCC 4.9 may
+// have issues and returns 1 for 'defined( __has_include )', while
+// '__has_include' is actually not supported:
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63662
-#if defined( __has_include ) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
-# if __has_include(<cxxabi.h>)
-#  define ASAP_HAS_CXXABI_H
-# endif
-#elif defined( __GLIBCXX__ ) || defined( __GLIBCPP__ )
-# define ASAP_CORE_HAS_CXXABI_H
+#if defined(__has_include) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
+#if __has_include(<cxxabi.h>)
+#define ASAP_HAS_CXXABI_H
 #endif
-
-#include <execinfo.h>
-#if defined( ASAP_HAS_CXXABI_H )
-# include <cxxabi.h>
-// For some architectures (mips, mips64, x86, x86_64) cxxabi.h in Android NDK is implemented by gabi++ library
-// (https://android.googlesource.com/platform/ndk/+/master/sources/cxx-stl/gabi++/), which does not implement
-// abi::__cxa_demangle(). We detect this implementation by checking the include guard here.
-# if defined( __GABIXX_CXXABI_H__ )
-#  undef ASAP_HAS_CXXABI_H
-# else
-#  include <cstdlib>
-#  include <cstddef>
-# endif
+#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
+#define ASAP_CORE_HAS_CXXABI_H
 #endif
 
 namespace {
-inline char const *demangle_alloc(char const *name) noexcept;
-inline void demangle_free(char const *name) noexcept;
+#if defined(ASAP_HAS_CXXABI_H)
+#include <cxxabi.h>
+// For some architectures (mips, mips64, x86, x86_64) cxxabi.h in Android NDK is
+// implemented by gabi++ library
+// (https://android.googlesource.com/platform/ndk/+/master/sources/cxx-stl/gabi++/),
+// which does not implement abi::__cxa_demangle(). We detect this implementation
+// by checking the include guard here.
+#if defined(__GABIXX_CXXABI_H__)
+#undef ASAP_HAS_CXXABI_H
+#else
+#include <cstddef>
+#include <cstdlib>
+#endif
+
+inline char const* demangle_alloc(char const* name) noexcept;
+inline void demangle_free(char const* name) noexcept;
 
 class scoped_demangled_name {
  private:
-  char const *m_p;
+  char const* m_p;
 
  public:
-  explicit scoped_demangled_name(char const *name) noexcept :
-      m_p(demangle_alloc(name)) {
-  }
+  explicit scoped_demangled_name(char const* name) noexcept
+      : m_p(demangle_alloc(name)) {}
 
-  ~scoped_demangled_name() noexcept {
-    demangle_free(m_p);
-  }
+  ~scoped_demangled_name() noexcept { demangle_free(m_p); }
 
-  char const *get() const noexcept {
-    return m_p;
-  }
+  char const* get() const noexcept { return m_p; }
 
-  scoped_demangled_name(scoped_demangled_name const& ) = delete;
-  scoped_demangled_name &operator=(scoped_demangled_name const &) = delete;
+  scoped_demangled_name(scoped_demangled_name const&) = delete;
+  scoped_demangled_name& operator=(scoped_demangled_name const&) = delete;
 };
 
-
-inline char const * demangle_alloc( char const * name ) noexcept
-{
-    int status = 0;
-    std::size_t size = 0;
-    return abi::__cxa_demangle( name, NULL, &size, &status );
+inline char const* demangle_alloc(char const* name) noexcept {
+  int status = 0;
+  std::size_t size = 0;
+  return abi::__cxa_demangle(name, NULL, &size, &status);
 }
 
-inline void demangle_free( char const * name ) noexcept
-{
-    std::free( const_cast< char* >( name ) );
+inline void demangle_free(char const* name) noexcept {
+  std::free(const_cast<char*>(name));
 }
 
-inline std::string demangle( char const * name )
-{
-    scoped_demangled_name demangled_name( name );
-    char const * p = demangled_name.get();
-    if( !p )
-        p = name;
-    return p;
+inline std::string demangle(char const* name) {
+  scoped_demangled_name demangled_name(name);
+  char const* p = demangled_name.get();
+  if (!p) p = name;
+  return p;
 }
-}
+#else   // ASAP_HAS_CXXABI_H
+inline char const* demangle_alloc(char const* name) noexcept { return name; }
+
+inline void demangle_free(char const*) noexcept {}
+
+inline std::string demangle(char const* name) { return name; }
+}  // namespace
+#endif  // ASAP_HAS_CXXABI_H
+
+#if ASAP_USE_EXECINFO
+#include <execinfo.h>
 
 namespace asap {
 
@@ -113,7 +112,7 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 #elif defined _WIN32
 
 #include <mutex>
-//#include "asap/utf8.hpp"
+   //#include "asap/utf8.hpp"
 #include "windows.h"
 
 #include "dbghelp.h"
@@ -193,8 +192,7 @@ void print_backtrace(char* out, int len, int max_depth, void* ctx) {
 
     if (has_symbol) {
       ret = std::snprintf(out, len, " %s +%-4" PRId64,
-                          boost::core::demangle(symbol.Name).c_str(),
-                          displacement);
+                          demangle(symbol.Name).c_str(), displacement);
       out += ret;
       len -= ret;
       if (len <= 0) break;
@@ -228,15 +226,15 @@ void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
 
 }  // namespace asap
 
-#endif // OS/Platform
+#endif  // OS/Platform
 
-#endif // ASAP_USE_ASSERTS
+#endif  // ASAP_USE_ASSERTS
 
 #if ASAP_USE_ASSERTS
 namespace {
 ASAP_FORMAT(1, 2)
-void assert_print(char const *fmt, ...) {
-  FILE *out = stderr;
+void assert_print(char const* fmt, ...) {
+  FILE* out = stderr;
   va_list va;
   va_start(va, fmt);
   std::vfprintf(out, fmt, va);
@@ -247,7 +245,7 @@ void assert_print(char const *fmt, ...) {
 #endif
 }
 }  // namespace
-#endif // ASAP_USE_ASSERTS
+#endif  // ASAP_USE_ASSERTS
 
 namespace asap {
 
@@ -271,8 +269,7 @@ void assert_fail(char const* expr, int line, char const* file,
   stack[0] = '\0';
   print_backtrace(stack, sizeof(stack), 0);
 
-  char const* message =
-      "Assertion failed.\n";
+  char const* message = "Assertion failed.\n";
 
   if (kind == 1) {
     message =
@@ -328,6 +325,6 @@ void assert_print(char const*, ...) {}
 void assert_fail(char const*, int, char const*, char const*, char const*, int) {
 }
 
-#endif // ASAP_USE_ASSERTS
+#endif  // ASAP_USE_ASSERTS
 
 }  // namespace asap
