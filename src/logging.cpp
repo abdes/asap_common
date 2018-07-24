@@ -106,7 +106,7 @@ void Registry::SetLogLevel(spdlog::level::level_enum log_level) {
   auto &loggers = Loggers();
   std::for_each(loggers.begin(), loggers.end(), [log_level](Logger &log) {
     // Thread safe
-    log.Level(log_level);
+    log.SetLevel(log_level);
   });
 }
 

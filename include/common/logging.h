@@ -101,9 +101,9 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    *
    * @param [in] level logging level.
    */
-  void Level(spdlog::level::level_enum level) { logger_->set_level(level); }
+  void SetLevel(spdlog::level::level_enum level) { logger_->set_level(level); }
 
-  spdlog::level::level_enum Level() const { return logger_->level(); }
+  spdlog::level::level_enum GetLevel() const { return logger_->level(); }
 
   /// Default format for all loggers.
   /// @see https://github.com/gabime/spdlog/wiki/3.-Custom-formatting

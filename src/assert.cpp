@@ -20,29 +20,29 @@
 // have issues and returns 1 for 'defined( __has_include )', while
 // '__has_include' is actually not supported:
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63662
-#if defined(__has_include) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
-#if __has_include(<cxxabi.h>)
-#define ASAP_HAS_CXXABI_H
-#endif
-#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
-#define ASAP_CORE_HAS_CXXABI_H
-#endif
+# if defined(__has_include) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
+#  if __has_include(<cxxabi.h>)
+#   define ASAP_HAS_CXXABI_H
+#  endif
+# elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
+#  define ASAP_CORE_HAS_CXXABI_H
+# endif
 
-namespace {
-#if defined(ASAP_HAS_CXXABI_H)
+# if defined(ASAP_HAS_CXXABI_H)
 #include <cxxabi.h>
 // For some architectures (mips, mips64, x86, x86_64) cxxabi.h in Android NDK is
 // implemented by gabi++ library
 // (https://android.googlesource.com/platform/ndk/+/master/sources/cxx-stl/gabi++/),
 // which does not implement abi::__cxa_demangle(). We detect this implementation
 // by checking the include guard here.
-#if defined(__GABIXX_CXXABI_H__)
-#undef ASAP_HAS_CXXABI_H
-#else
+#  if defined(__GABIXX_CXXABI_H__)
+#   undef ASAP_HAS_CXXABI_H
+#  else
 #include <cstddef>
 #include <cstdlib>
-#endif
+#  endif
 
+namespace {
 inline char const* demangle_alloc(char const* name) noexcept;
 inline void demangle_free(char const* name) noexcept;
 
@@ -78,20 +78,22 @@ inline std::string demangle(char const* name) {
   if (!p) p = name;
   return p;
 }
-#else   // ASAP_HAS_CXXABI_H
+}  // namespace
+# else  // !ASAP_HAS_CXXABI_H
+namespace {
 inline char const* demangle_alloc(char const* name) noexcept { return name; }
 
 inline void demangle_free(char const*) noexcept {}
 
 inline std::string demangle(char const* name) { return name; }
 }  // namespace
-#endif  // ASAP_HAS_CXXABI_H
+# endif  // ASAP_HAS_CXXABI_H
 
-#if ASAP_USE_EXECINFO
+
+# if ASAP_USE_EXECINFO
 #include <execinfo.h>
 
 namespace asap {
-
 void print_backtrace(char* out, int len, int max_depth, void*) {
   void* stack[50];
   int size = ::backtrace(stack, 50);
@@ -109,12 +111,10 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 }
 }  // namespace asap
 
-#elif defined _WIN32
+# elif defined _WIN32
 
 #include <mutex>
-   //#include "asap/utf8.hpp"
 #include "windows.h"
-
 #include "dbghelp.h"
 #include "winbase.h"
 
@@ -215,22 +215,17 @@ void print_backtrace(char* out, int len, int max_depth, void* ctx) {
 }
 }  // namespace asap
 
-#else
+# else  // EXEC_INFO
 
 namespace asap {
-
 void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
   out[0] = 0;
   std::strncat(out, "<not supported>", std::size_t(len));
 }
-
 }  // namespace asap
 
-#endif  // OS/Platform
+# endif  // EXEC_INFO
 
-#endif  // ASAP_USE_ASSERTS
-
-#if ASAP_USE_ASSERTS
 namespace {
 ASAP_FORMAT(1, 2)
 void assert_print(char const* fmt, ...) {
@@ -239,17 +234,8 @@ void assert_print(char const* fmt, ...) {
   va_start(va, fmt);
   std::vfprintf(out, fmt, va);
   va_end(va);
-
-#ifdef ASAP_PRODUCTION_ASSERTS
-  if (out != stderr) fclose(out);
-#endif
 }
 }  // namespace
-#endif  // ASAP_USE_ASSERTS
-
-namespace asap {
-
-#if ASAP_USE_ASSERTS
 
 // we deliberately don't want asserts to be marked as no-return, since that
 // would trigger warnings in debug builds of any code coming after the assert
@@ -258,16 +244,12 @@ namespace asap {
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #endif
 
+namespace asap {
 void assert_fail(char const* expr, int line, char const* file,
                  char const* function, char const* value, int kind) {
-#ifdef ASAP_PRODUCTION_ASSERTS
-  // no need to flood the assert log with infinite number of asserts
-  if (assert_counter.fetch_add(1) + 1 > 500) return;
-#endif
-
   char stack[8192];
   stack[0] = '\0';
-  print_backtrace(stack, sizeof(stack), 0);
+  print_backtrace(stack, sizeof(stack), 0, 0);
 
   char const* message = "Assertion failed.\n";
 
@@ -279,9 +261,6 @@ void assert_fail(char const* expr, int line, char const* file,
 
   assert_print(
       "%s\n"
-#ifdef ASAP_PRODUCTION_ASSERTS
-      "#: %d\n"
-#endif
       "file: '%s'\n"
       "line: %d\n"
       "function: %s\n"
@@ -289,27 +268,11 @@ void assert_fail(char const* expr, int line, char const* file,
       "%s%s\n"
       "stack:\n"
       "%s\n",
-      message
-#ifdef ASAP_PRODUCTION_ASSERTS
-      ,
-      assert_counter.load()
-#endif
-          ,
+      message,
       file, line, function, expr, value ? value : "", value ? "\n" : "", stack);
-
-  // if production asserts are defined, don't abort, just print the error
-#ifndef ASAP_PRODUCTION_ASSERTS
-#ifdef ASAP_WINDOWS
-  // SIGINT doesn't trigger a break with msvc
-  DebugBreak();
-#else
-  // send SIGINT to the current process
-  // to break into the debugger
-  //::raise(SIGABRT);
-#endif
-  //::abort();
-#endif
+  ::abort();
 }
+}  // namespace asap
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -320,11 +283,13 @@ void assert_fail(char const* expr, int line, char const* file,
 // these are just here to make it possible for a client that built with debug
 // enable to be able to link against a release build (just possible, not
 // necessarily supported)
+namespace {
 ASAP_FORMAT(1, 2)
 void assert_print(char const*, ...) {}
-void assert_fail(char const*, int, char const*, char const*, char const*, int) {
-}
+}  // namespace unnamed
+namespace asap {
+void assert_fail(char const*, int, char const*, char const*, char const*, int) {}
+}  // namespace asap
 
 #endif  // ASAP_USE_ASSERTS
 
-}  // namespace asap
