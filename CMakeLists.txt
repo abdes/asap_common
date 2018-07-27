@@ -40,6 +40,8 @@ set(public_headers
   "include/common/assert.h"
   "include/common/non_copiable.h"
   "include/common/logging.h"
+
+  "include/common/traits/logical.h"
   )
 
 set(sources

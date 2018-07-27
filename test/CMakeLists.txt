@@ -38,6 +38,7 @@ set(public_headers)
 
 set(sources
   "logging_test.cpp"
+  "traits_logical_test.cpp"
   "main.cpp"
   ${public_headers}
 )
