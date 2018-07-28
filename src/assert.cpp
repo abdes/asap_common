@@ -25,7 +25,7 @@
 #   define ASAP_HAS_CXXABI_H
 #  endif
 # elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
-#  define ASAP_CORE_HAS_CXXABI_H
+#  define ASAP_HAS_CXXABI_H
 # endif
 
 # if defined(ASAP_HAS_CXXABI_H)
