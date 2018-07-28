@@ -6,10 +6,19 @@
 #include <catch2/catch.hpp>
 
 #include <common/traits/logical.h>
+#include <asap/asap-features.h>
 
 using asap::conjunction;
 using asap::disjunction;
 using asap::negation;
+
+#if ASAP_COMPILER_IS_GNU
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#elif ASAP_COMPILER_IS_Clang
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-local-typedefs"
+#endif
 
 TEST_CASE("Conjunction_typedef", "[common][traits][logical]") {
   // Check for required typedefs
@@ -56,3 +65,9 @@ TEST_CASE("Value", "[common][traits][logical]") {
   REQUIRE(disjunction<std::false_type, std::false_type, std::true_type>{});
   REQUIRE(!disjunction<std::false_type, std::false_type, std::false_type>{});
 }
+
+#if ASAP_COMPILER_IS_GNU
+#pragma GCC diagnostic pop
+#elif ASAP_COMPILER_IS_Clang
+#pragma clang diagnostic pop
+#endif

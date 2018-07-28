@@ -22,11 +22,7 @@
 // ==== LINUX ===
 #elif defined __linux__
 #define ASAP_LINUX
-
-#if defined __GLIBC__ && (defined __x86_64__ || defined __i386 || \
-                          defined _M_X64 || defined _M_IX86)
 #define ASAP_USE_EXECINFO 1
-#endif
 
 // ==== MINGW ===
 #elif defined __MINGW32__ || defined __MINGW64__
