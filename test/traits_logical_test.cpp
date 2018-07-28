@@ -15,9 +15,9 @@ using asap::negation;
 #if ASAP_COMPILER_IS_GNU
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#elif ASAP_COMPILER_IS_Clang
+#elif ASAP_COMPILER_IS_Clang || ASAP_COMPILER_IS_AppleClang
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-local-typedefs"
+#pragma clang diagnostic ignored "-Wunused-local-typedef"
 #endif
 
 TEST_CASE("Conjunction_typedef", "[common][traits][logical]") {
