@@ -40,8 +40,13 @@ set(public_headers
   "include/common/assert.h"
   "include/common/non_copiable.h"
   "include/common/logging.h"
-
+  # traits module
   "include/common/traits/logical.h"
+  # unicode module
+  "include/common/unicode/convert.h"
+  "include/common/unicode/encoding_errors.h"
+  "include/common/unicode/encoding_utf.h"
+  "include/common/unicode/utf.h"
   )
 
 set(sources
