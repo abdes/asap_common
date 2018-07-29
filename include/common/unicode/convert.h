@@ -26,25 +26,25 @@ template <typename CharOut, typename CharIn>
 CharOut *basic_convert(CharOut *buffer, size_t buffer_size,
                        CharIn const *source_begin, CharIn const *source_end) {
   CharOut *rv = buffer;
-  if (buffer_size == 0) return 0;
+  if (buffer_size == 0) return nullptr;
   buffer_size--;
   while (source_begin != source_end) {
     using namespace nowide::utf;
     code_point c = utf_traits<CharIn>::template decode<CharIn const *>(
         source_begin, source_end);
     if (c == illegal || c == incomplete) {
-      rv = 0;
+      rv = nullptr;
       break;
     }
     size_t width = utf_traits<CharOut>::width(c);
     if (buffer_size < width) {
-      rv = 0;
+      rv = nullptr;
       break;
     }
     buffer = utf_traits<CharOut>::template encode<CharOut *>(c, buffer);
     buffer_size -= width;
   }
-  *buffer++ = 0;
+  *buffer = 0;
   return rv;
 }
 
