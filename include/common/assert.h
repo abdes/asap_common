@@ -152,3 +152,9 @@ extern char const* asap_assert_log;
   ASAP_WHILE_0
 
 #endif  // ASAP_USE_ASSERTS
+
+#ifdef ASAP_COMPILER_IS_GNU
+# define ASAP_UNREACHABLE() __builtin_unreachable()
+#else
+# define ASAP_UNREACHABLE() std::abort()
+#endif
