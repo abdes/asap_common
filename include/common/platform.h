@@ -8,16 +8,17 @@
 #include <asap/asap-features.h>
 
 // ==== Darwin/BSD ===
-#if (defined __APPLE__ && defined __MACH__) || defined __FreeBSD__ || \
-    defined __NetBSD__ || defined __OpenBSD__ || defined __bsdi__ ||  \
-    defined __DragonFly__ || defined __FreeBSD_kernel__
+#if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__ || \
+    defined __bsdi__ ||  defined __DragonFly__ || defined __FreeBSD_kernel__
 #define ASAP_BSD
-#if defined __APPLE__
 
-// execinfo.h is available in the MacOS X 10.5 SDK.
-#define ASAP_USE_EXECINFO 1
-
-#endif  // __APPLE__
+#elif defined __APPLE__
+#define ASAP_APPLE
+# if defined(__MACH__)
+#  define ASAP_MACOS
+   // execinfo.h is available in the MacOS X 10.5 SDK.
+#  define ASAP_USE_EXECINFO 1
+# endif
 
 // ==== LINUX ===
 #elif defined __linux__
