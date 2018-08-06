@@ -5,98 +5,84 @@
 
 #pragma once
 
-#include <asap/asap-features.h>
+// -----------------------------------------------------------------------------
+//   Operating System detection
+// -----------------------------------------------------------------------------
 
-// ==== Darwin/BSD ===
-#if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__ || \
-    defined __bsdi__ ||  defined __DragonFly__ || defined __FreeBSD_kernel__
+// WINDOWS
+#if defined(_WIN32)  // defined for 32-bit and 64-bit environments
+#define ASAP_WINDOWS
+#if defined(__CYGWIN__)  // non-POSIX CygWin
+#define ASAP_WINDOWS_CYGWIN
+#endif
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#define ASAP_WINDOWS_MINGW
+#endif
+// Not a Windows
+// UNIX-style OS
+// All UNIX-style OSes define some form of the unix symbol, except for Apple.
+// GCC with CygWin also defines unix symbols even when building WIN32 apps and
+// this is why UNIX detection is within the #elif of _WIN32
+#elif (defined(__unix__) || defined(__unix) || \
+       (defined(__APPLE__) && defined(__MACH__)))
+#define ASAP_UNIX  // UNIX-style OS.
+// All UNIX-style systems have a unistd.h include file. We'll use it to detect
+// posix compliance
+#include <unistd.h>
+#if defined(_POSIX_VERSION)
+#define ASAP_POSIX  // POSIX compliant
+#endif
+// Apple OSX, iOS, Darwin
+#if defined(__APPLE__) && defined(__MACH__)
+#define ASAP_APPLE  // Apple OSX and iOS (Darwin)
+#include <TargetConditionals.h>
+#if TARGET_IPHONE_SIMULATOR == 1
+#define ASAP_APPLE_IOS_SIMULATOR  // iOS in Xcode simulator
+#elif TARGET_OS_IPHONE == 1
+#define ASAP_APPLE_IOS  // iOS on iPhone, iPad, etc.
+#elif TARGET_OS_MAC == 1
+#define ASAP_APPLE_OSX  // OSX
+#endif
+#endif
+// BSD
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__bsdi__) || defined(__DragonFly__)
 #define ASAP_BSD
-
-#elif defined __APPLE__
-#define ASAP_APPLE
-# if defined(__MACH__)
-#  define ASAP_MACOS
-   // execinfo.h is available in the MacOS X 10.5 SDK.
-#  define ASAP_USE_EXECINFO 1
-# endif
-
-// ==== LINUX ===
-#elif defined __linux__
+#endif
+// CygWin (not WIN32)
+#if defined(__CYGWIN__)
+#define ASAP_CYGWIN
+#endif
+// Any Linux based OS, including Gnu/Linux and Android
+#if defined(__linux__)
 #define ASAP_LINUX
-#define ASAP_USE_EXECINFO 1
-
-// ==== MINGW ===
-#elif defined __MINGW32__ || defined __MINGW64__
-#define ASAP_MINGW
-#define ASAP_WINDOWS
-
-// ==== WINDOWS ===
-#elif defined _WIN32
-#define ASAP_WINDOWS
-
-#endif  // Platform checks
-
-// SSE is x86 / amd64 specific. On top of that, we only
-// know how to access it on msvc and gcc (and gcc compatibles).
-// GCC requires the user to enable SSE support in order for
-// the program to have access to the intrinsics, this is
-// indicated by the __SSE4_1__ macro
-#ifndef ASAP_HAS_SSE
-
-#if (defined _M_AMD64 || defined _M_IX86 || defined _M_X64 ||   \
-     defined __amd64__ || defined __i386 || defined __i386__ || \
-     defined __x86_64__ || defined __x86_64) &&                 \
-    (defined __GNUC__ || (defined _MSC_VER && _MSC_VER >= 1600))
-#define ASAP_HAS_SSE 1
-#else
-#define ASAP_HAS_SSE 0
+#if defined(__gnu_linux__)  // Specificaly Gnu/Linux
+#define ASAP_GNU_LINUX
 #endif
-
-#endif  // ASAP_HAS_SSE
-
-#if (defined __arm__ || defined __aarch64__ || defined _M_ARM || \
-     defined _M_ARM64)
-#define ASAP_HAS_ARM 1
-#else
-#define ASAP_HAS_ARM 0
-#endif  // ASAP_HAS_ARM
-
-#ifndef __has_builtin
-#define __has_builtin(x) 0  // for non-clang compilers
+#if defined(__ANDROID__)  // Android (which also defines __linux__)
+#define ASAP_ANDROID
 #endif
-
-#if (ASAP_HAS_SSE && defined __GNUC__)
-#define ASAP_HAS_BUILTIN_CLZ 1
-#elif (ASAP_HAS_ARM && defined __GNUC__ && !defined __clang__)
-#define ASAP_HAS_BUILTIN_CLZ 1
-#elif (defined __clang__ && __has_builtin(__builtin_clz))
-#define ASAP_HAS_BUILTIN_CLZ 1
-#else
-#define ASAP_HAS_BUILTIN_CLZ 0
-#endif  // ASAP_HAS_BUILTIN_CLZ
-
-#if (ASAP_HAS_SSE && defined __GNUC__)
-#define ASAP_HAS_BUILTIN_CTZ 1
-#elif (ASAP_HAS_ARM && defined __GNUC__ && !defined __clang__)
-#define ASAP_HAS_BUILTIN_CTZ 1
-#elif (defined __clang__ && __has_builtin(__builtin_ctz))
-#define ASAP_HAS_BUILTIN_CTZ 1
-#else
-#define ASAP_HAS_BUILTIN_CTZ 0
-#endif  // ASAP_HAS_BUILTIN_CTZ
-
-#if ASAP_HAS_ARM && defined __ARM_NEON
-#define ASAP_HAS_ARM_NEON 1
-#else
-#define ASAP_HAS_ARM_NEON 0
-#endif  // ASAP_HAS_ARM_NEON
-
-#if ASAP_HAS_ARM && defined __ARM_FEATURE_CRC32
-#define ASAP_HAS_ARM_CRC32 1
-#else
-#if defined ASAP_FORCE_ARM_CRC32
-#define ASAP_HAS_ARM_CRC32 1
-#else
-#define ASAP_HAS_ARM_CRC32 0
 #endif
-#endif  // ASAP_HAS_ARM_CRC32
+// Solaris and SunOS
+#if defined(sun) || defined(__sun)
+#define ASAP_SUN
+#if defined(__SVR4) || defined(__svr4__)
+#define ASAP_SUN_SOLARIS  // Solaris
+#else
+#define ASAP_SUN_SUNOS  // SunOS
+#endif
+#endif
+// HP-UX
+#if defined(__hpux)
+#define ASAP_HPUX
+#endif
+// HP-UX
+#if defined(_AIX)
+#define ASAP_AIX
+#endif
+// BSD (DragonFly BSD, FreeBSD, OpenBSD, NetBSD)
+#include <sys/param.h>
+#if defined(BSD)
+#define ASAP_BSD
+#endif
+#endif

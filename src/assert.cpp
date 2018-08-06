@@ -20,27 +20,27 @@
 // have issues and returns 1 for 'defined( __has_include )', while
 // '__has_include' is actually not supported:
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63662
-# if defined(__has_include) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
-#  if __has_include(<cxxabi.h>)
-#   define ASAP_HAS_CXXABI_H
-#  endif
-# elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
-#  define ASAP_HAS_CXXABI_H
-# endif
+#if defined(__has_include) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
+#if __has_include(<cxxabi.h>)
+#define ASAP_HAS_CXXABI_H
+#endif
+#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
+#define ASAP_HAS_CXXABI_H
+#endif
 
-# if defined(ASAP_HAS_CXXABI_H)
+#if defined(ASAP_HAS_CXXABI_H)
 #include <cxxabi.h>
 // For some architectures (mips, mips64, x86, x86_64) cxxabi.h in Android NDK is
 // implemented by gabi++ library
 // (https://android.googlesource.com/platform/ndk/+/master/sources/cxx-stl/gabi++/),
 // which does not implement abi::__cxa_demangle(). We detect this implementation
 // by checking the include guard here.
-#  if defined(__GABIXX_CXXABI_H__)
-#   undef ASAP_HAS_CXXABI_H
-#  else
+#if defined(__GABIXX_CXXABI_H__)
+#undef ASAP_HAS_CXXABI_H
+#else
 #include <cstddef>
 #include <cstdlib>
-#  endif
+#endif
 
 namespace {
 inline char const* demangle_alloc(char const* name) noexcept;
@@ -79,7 +79,7 @@ inline std::string demangle(char const* name) {
   return p;
 }
 }  // namespace
-# else  // !ASAP_HAS_CXXABI_H
+#else   // !ASAP_HAS_CXXABI_H
 namespace {
 inline char const* demangle_alloc(char const* name) noexcept { return name; }
 
@@ -87,10 +87,9 @@ inline void demangle_free(char const*) noexcept {}
 
 inline std::string demangle(char const* name) { return name; }
 }  // namespace
-# endif  // ASAP_HAS_CXXABI_H
+#endif  // ASAP_HAS_CXXABI_H
 
-
-# if ASAP_USE_EXECINFO
+#if ASAP_USE_EXECINFO
 #include <execinfo.h>
 
 namespace asap {
@@ -111,12 +110,12 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 }
 }  // namespace asap
 
-# elif defined _WIN32
+#elif defined(ASAP_WINDOWS)
 
 #include <mutex>
-#include "windows.h"
 #include "dbghelp.h"
 #include "winbase.h"
+#include "windows.h"
 
 namespace asap {
 
@@ -215,7 +214,7 @@ void print_backtrace(char* out, int len, int max_depth, void* ctx) {
 }
 }  // namespace asap
 
-# else  // EXEC_INFO
+#else  // EXEC_INFO
 
 namespace asap {
 void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
@@ -224,7 +223,7 @@ void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
 }
 }  // namespace asap
 
-# endif  // EXEC_INFO
+#endif  // EXEC_INFO
 
 namespace {
 ASAP_FORMAT(1, 2)
@@ -239,7 +238,7 @@ void assert_print(char const* fmt, ...) {
 
 // we deliberately don't want asserts to be marked as no-return, since that
 // would trigger warnings in debug builds of any code coming after the assert
-#ifdef __clang__
+#if ASAP_COMPILER_IS_Clang
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #endif
@@ -268,13 +267,13 @@ void assert_fail(char const* expr, int line, char const* file,
       "%s%s\n"
       "stack:\n"
       "%s\n",
-      message,
-      file, line, function, expr, value ? value : "", value ? "\n" : "", stack);
+      message, file, line, function, expr, value ? value : "",
+      value ? "\n" : "", stack);
   ::abort();
 }
 }  // namespace asap
 
-#ifdef __clang__
+#if ASAP_COMPILER_IS_Clang
 #pragma clang diagnostic pop
 #endif
 
@@ -286,10 +285,10 @@ void assert_fail(char const* expr, int line, char const* file,
 namespace {
 ASAP_FORMAT(1, 2)
 void assert_print(char const*, ...) {}
-}  // namespace unnamed
+}  // namespace
 namespace asap {
-void assert_fail(char const*, int, char const*, char const*, char const*, int) {}
+void assert_fail(char const*, int, char const*, char const*, char const*, int) {
+}
 }  // namespace asap
 
 #endif  // ASAP_USE_ASSERTS
-

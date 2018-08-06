@@ -7,7 +7,6 @@
 
 #include <common/logging.h>
 
-
 namespace asap {
 namespace logging {
 
@@ -46,10 +45,8 @@ TEST_CASE("TestLogWithPrefix", "[common][logging]") {
 }
 
 class MockSink : public spdlog::sinks::sink {
-public:
-  void log(const spdlog::details::log_msg &) override {
-    ++called_;
-  }
+ public:
+  void log(const spdlog::details::log_msg &) override { ++called_; }
   void flush() override {}
   void Reset() { called_ = 0; }
 
@@ -59,19 +56,19 @@ public:
 TEST_CASE("TestLogPushSink", "[common][logging]") {
   auto *first_mock = new MockSink();
   auto *second_mock = new MockSink();
-	auto first_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(first_mock);
-	auto second_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(second_mock);
+  auto first_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(first_mock);
+  auto second_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(second_mock);
 
-	auto &test_logger = Registry::GetLogger(Id::TESTING);
-	Registry::PushSink(first_sink_ptr);
-	ASLOG_TO_LOGGER(test_logger, debug, "message");
+  auto &test_logger = Registry::GetLogger(Id::TESTING);
+  Registry::PushSink(first_sink_ptr);
+  ASLOG_TO_LOGGER(test_logger, debug, "message");
 
   REQUIRE(first_mock->called_ == 1);
   first_mock->Reset();
   second_mock->Reset();
 
-	Registry::PushSink(second_sink_ptr);
-	ASLOG_TO_LOGGER(test_logger, debug, "message");
+  Registry::PushSink(second_sink_ptr);
+  ASLOG_TO_LOGGER(test_logger, debug, "message");
 
   REQUIRE(first_mock->called_ == 0);
   REQUIRE(second_mock->called_ == 1);
@@ -79,15 +76,15 @@ TEST_CASE("TestLogPushSink", "[common][logging]") {
   second_mock->Reset();
 
   Registry::PopSink();
-	ASLOG_TO_LOGGER(test_logger, debug, "message");
+  ASLOG_TO_LOGGER(test_logger, debug, "message");
 
   REQUIRE(first_mock->called_ == 1);
   REQUIRE(second_mock->called_ == 0);
   first_mock->Reset();
   second_mock->Reset();
 
-	Registry::PopSink();
-	ASLOG_TO_LOGGER(test_logger, debug, "message");
+  Registry::PopSink();
+  ASLOG_TO_LOGGER(test_logger, debug, "message");
 
   REQUIRE(first_mock->called_ == 0);
   REQUIRE(second_mock->called_ == 0);

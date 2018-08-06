@@ -7,7 +7,6 @@
 
 #include <common/unicode/convert.h>
 
-
 TEST_CASE("Unicode / nowide / widen", "[common][unicode][nowide]") {
   const std::string hello = "\xd7\xa9\xd7\x9c\xd7\x95\xd7\x9d";
   const std::wstring whello = L"\u05e9\u05dc\u05d5\u05dd";

@@ -47,7 +47,7 @@ inline constexpr const char *LoggerName(Id id) {
     case Id::MAIN:     return "main    ";
     case Id::INVALID_: return "__DO_NOT_USE__";
     // omit default case to trigger compiler warning for missing cases
-    // clang-format on
+      // clang-format on
   };
   return "__INVALID__";
 }
@@ -58,7 +58,8 @@ inline constexpr const char *LoggerName(Id id) {
 // Logger
 // ---------------------------------------------------------------------------
 
-Logger::Logger(std::string name, logging::Id id, spdlog::sink_ptr sink) : id_(id) {
+Logger::Logger(std::string name, logging::Id id, spdlog::sink_ptr sink)
+    : id_(id) {
   logger_ = std::make_shared<spdlog::logger>(name, sink);
   logger_->set_pattern(DEFAULT_LOG_FORMAT);
   logger_->set_level(spdlog::level::trace);
@@ -85,9 +86,8 @@ void Registry::PushSink(spdlog::sink_ptr sink) {
 void Registry::PopSink() {
   std::lock_guard<std::mutex> lock(sinks_mutex_);
   auto &sinks = Sinks();
-  ASAP_ASSERT(
-      !sinks.empty() &&
-      "call to PopSink() not matching a previous call to PushSink()");
+  ASAP_ASSERT(!sinks.empty() &&
+              "call to PopSink() not matching a previous call to PushSink()");
   if (!sinks.empty()) {
     auto &sink = sinks.top();
     // Assign this previous sink to the delegating sink
@@ -152,7 +152,6 @@ DelegatingSink *Registry::delegating_sink_() {
   static auto *sink = new DelegatingSink(default_sink);
   return sink;
 }
-
 
 // ---------------------------------------------------------------------------
 // Helper for file name and line number formatting

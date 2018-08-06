@@ -5,8 +5,8 @@
 
 #include <catch2/catch.hpp>
 
-#include <common/traits/logical.h>
 #include <asap/asap-features.h>
+#include <common/traits/logical.h>
 
 using asap::conjunction;
 using asap::disjunction;
@@ -15,7 +15,7 @@ using asap::negation;
 #if ASAP_COMPILER_IS_GNU
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#elif ASAP_COMPILER_IS_Clang || ASAP_COMPILER_IS_AppleClang
+#elif ASAP_COMPILER_IS_Clang
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-local-typedef"
 #endif

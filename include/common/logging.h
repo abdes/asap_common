@@ -62,7 +62,8 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
 
   /// Move constructor
   Logger(Logger &&other) noexcept
-      : id_(other.id_), logger_(std::move(other.logger_)),
+      : id_(other.id_),
+        logger_(std::move(other.logger_)),
         logger_mutex_(std::move(other.logger_mutex_)){};
 
   /// Move assignment
@@ -372,7 +373,8 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
 #define STRINGIZE(x) #x
 #define LINE_STRING DO_STRINGIZE(__LINE__)
 #ifndef NDEBUG
-std::string ASAP_COMMON_API FormatFileAndLine(char const *file, char const *line);
+std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
+                                              char const *line);
 //#define LOG_PREFIX "[" __FILE__ ":" LINE_STRING "] "
 //#define LOG_PREFIX " "
 #define LOG_PREFIX asap::logging::FormatFileAndLine(__FILE__, LINE_STRING)

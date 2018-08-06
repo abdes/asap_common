@@ -9,6 +9,14 @@
 
 set(IDE_FOLDER "Libraries")
 
+# Project options
+option(ASAP_USE_ASSERTS         "Enable ASSERT macros."                            ON)
+option(ASAP_USE_SYSTEM_ASSERTS  "Use system assert() to implement ASSERT macros."  OFF)
+
+# This module's specific Environment detection
+include(CheckIncludeFileCXX)
+check_include_file_cxx("execinfo.h" ASAP_HAVE_EXECINFO_H)
+
 # ------------------------------------------------------------------------------
 # External dependencies
 # ------------------------------------------------------------------------------
@@ -119,6 +127,15 @@ if (OPTION_BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
+# ------------------------------------------------------------------------------
+# Code generation
+# ------------------------------------------------------------------------------
+
+# Generate config-header
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/common/config.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/include/common/config.h
+)
 
 # ------------------------------------------------------------------------------
 # Code analysis

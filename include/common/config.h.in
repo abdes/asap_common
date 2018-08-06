@@ -1,0 +1,21 @@
+//        Copyright The Authors 2018.
+//    Distributed under the 3-Clause BSD License.
+//    (See accompanying file LICENSE or copy at
+//   https://opensource.org/licenses/BSD-3-Clause)
+
+#pragma once
+
+#include <asap/asap-features.h>
+#include <common/platform.h>
+
+// Assert macros enable/disable flags
+#cmakedefine01 ASAP_USE_ASSERTS
+#cmakedefine01 ASAP_USE_SYSTEM_ASSERTS
+
+// Whether we should use execinfo.h for stack backtrace
+#cmakedefine ASAP_HAVE_EXECINFO_H
+#if defined(ASAP_HAVE_EXECINFO_H)
+#  define ASAP_USE_EXECINFO 1
+#else
+#  define ASAP_USE_EXECINFO 1
+#endif
