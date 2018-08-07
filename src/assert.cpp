@@ -113,9 +113,11 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 #elif defined(ASAP_WINDOWS)
 
 #include <mutex>
-#include "dbghelp.h"
-#include "winbase.h"
+// clang-format off
 #include "windows.h"
+#include "winbase.h"
+#include "dbghelp.h"
+// clang-form on
 
 namespace asap {
 
@@ -248,7 +250,7 @@ void assert_fail(char const* expr, int line, char const* file,
                  char const* function, char const* value, int kind) {
   char stack[8192];
   stack[0] = '\0';
-  print_backtrace(stack, sizeof(stack), 0, 0);
+  print_backtrace(stack, sizeof(stack), 0, nullptr);
 
   char const* message = "Assertion failed.\n";
 
