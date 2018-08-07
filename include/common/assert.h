@@ -54,7 +54,14 @@ void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
 
 #if ASAP_USE_ASSERTS
 
-#ifndef ASAP_USE_SYSTEM_ASSERTS
+#if ASAP_USE_SYSTEM_ASSERTS
+#include <cassert>
+#define ASAP_ASSERT_PRECOND(x) assert(x)
+#define ASAP_ASSERT(x) assert(x)
+#define ASAP_ASSERT_VAL(x, y) assert(x)
+#define ASAP_ASSERT_FAIL_VAL(x) assert(false)
+#define ASAP_ASSERT_FAIL() assert(false)
+#else
 
 #define ASAP_ASSERT_PRECOND(x)                                              \
   do {                                                                      \
@@ -96,14 +103,6 @@ void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
 #define ASAP_ASSERT_FAIL()                                                \
   asap::assert_fail("<unconditional>", __LINE__, __FILE__, ASAP_FUNCTION, \
                     nullptr, 0)
-
-#else
-#include <cassert>
-#define ASAP_ASSERT_PRECOND(x) assert(x)
-#define ASAP_ASSERT(x) assert(x)
-#define ASAP_ASSERT_VAL(x, y) assert(x)
-#define ASAP_ASSERT_FAIL_VAL(x) assert(false)
-#define ASAP_ASSERT_FAIL() assert(false)
 #endif
 
 #else  // ASAP_USE_ASSERTS
@@ -131,7 +130,7 @@ void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
 
 #endif  // ASAP_USE_ASSERTS
 
-#ifdef ASAP_COMPILER_IS_GNU
+#if ASAP_COMPILER_IS_GNU
 #define ASAP_UNREACHABLE() __builtin_unreachable()
 #else
 #define ASAP_UNREACHABLE() std::abort()
