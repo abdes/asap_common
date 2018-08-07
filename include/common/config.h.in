@@ -17,5 +17,5 @@
 #if defined(ASAP_HAVE_EXECINFO_H)
 #  define ASAP_USE_EXECINFO 1
 #else
-#  define ASAP_USE_EXECINFO 1
+#  define ASAP_USE_EXECINFO 0
 #endif
