@@ -173,9 +173,10 @@ function(asap_library)
 
   # Header files
   if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/${ASAP_LIB_EXPORT_NAME})
-    install(DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/include/${ASAP_LIB_EXPORT_NAME} DESTINATION ${INSTALL_INCLUDE}
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/${ASAP_LIB_EXPORT_NAME}
+      DESTINATION ${INSTALL_INCLUDE}
       COMPONENT dev
+      FILES_MATCHING PATTERN "*.h"
       )
   endif ()
 
@@ -285,9 +286,10 @@ function(asap_header_library)
 
   # Header files
   if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/${ASAP_LIB_EXPORT_NAME})
-    install(DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/include/${ASAP_LIB_EXPORT_NAME} DESTINATION ${INSTALL_INCLUDE}
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/${ASAP_LIB_EXPORT_NAME}
+      DESTINATION ${INSTALL_INCLUDE}
       COMPONENT dev
+      FILES_MATCHING PATTERN "*.h"
       )
   endif ()
 
