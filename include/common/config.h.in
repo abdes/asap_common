@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <asap/asap-features.h>
-#include <common/platform.h>
+
+// POSIX 200809L compliance
+#cmakedefine ASAP_POSIX_200809L
 
 // Assert macros enable/disable flags
 #cmakedefine01 ASAP_USE_ASSERTS

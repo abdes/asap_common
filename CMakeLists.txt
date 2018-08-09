@@ -16,6 +16,17 @@ option(ASAP_USE_SYSTEM_ASSERTS  "Use system assert() to implement ASSERT macros.
 # This module's specific Environment detection
 include(CheckIncludeFileCXX)
 check_include_file_cxx("execinfo.h" ASAP_HAVE_EXECINFO_H)
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles("
+  #define _POSIX_C_SOURCE 200809L 
+  #include <unistd.h> 
+  #ifdef _POSIX_VERSION 
+  #if _POSIX_VERSION < 200809L
+  posix_200809L_unsupported 
+  #endif 
+  #endif
+  int main(int, char**) {
+  }" ASAP_POSIX_200809L FAIL_REGEX "posix_200809L_unsupported")
 
 # ------------------------------------------------------------------------------
 # External dependencies

@@ -26,12 +26,6 @@
 #elif (defined(__unix__) || defined(__unix) || \
        (defined(__APPLE__) && defined(__MACH__)))
 #define ASAP_UNIX  // UNIX-style OS.
-// All UNIX-style systems have a unistd.h include file. We'll use it to detect
-// posix compliance
-#include <unistd.h>
-#if defined(_POSIX_VERSION)
-#define ASAP_POSIX  // POSIX compliant
-#endif
 // Apple OSX, iOS, Darwin
 #if defined(__APPLE__) && defined(__MACH__)
 #define ASAP_APPLE  // Apple OSX and iOS (Darwin)

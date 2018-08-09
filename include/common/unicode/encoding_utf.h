@@ -13,10 +13,6 @@
 #include <common/unicode/encoding_errors.h>
 #include <common/unicode/utf.h>
 
-//#ifdef NOWIDE_MSVC
-//#  pragma warning(push)
-//#  pragma warning(disable : 4275 4251 4231 4660)
-//#endif
 
 namespace nowide {
 namespace conv {
@@ -76,6 +72,3 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
 }  // namespace conv
 }  // namespace nowide
 
-//#ifdef NOWIDE_MSVC
-//#pragma warning(pop)
-//#endif

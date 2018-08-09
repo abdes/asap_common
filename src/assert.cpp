@@ -4,6 +4,9 @@
 //   https://opensource.org/licenses/BSD-3-Clause)
 
 #include <common/assert.h>
+#include <asap/asap-features.h>
+#include <common/platform.h>
+#include <common/config.h>
 
 #if ASAP_USE_ASSERTS
 
