@@ -18,15 +18,13 @@ include(CheckIncludeFileCXX)
 check_include_file_cxx("execinfo.h" ASAP_HAVE_EXECINFO_H)
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("
-  #define _POSIX_C_SOURCE 200809L 
-  #include <unistd.h> 
-  #ifdef _POSIX_VERSION 
-  #if _POSIX_VERSION < 200809L
-  posix_200809L_unsupported 
-  #endif 
+  #define _POSIX_C_SOURCE 200112L
+  #include <unistd.h>
+  #if !defined(_POSIX_VERSION) || (_POSIX_VERSION < 200112L)
+  posix_200112L_unsupported
   #endif
   int main(int, char**) {
-  }" ASAP_POSIX_200809L FAIL_REGEX "posix_200809L_unsupported")
+  }" ASAP_POSIX FAIL_REGEX "posix_200112L_unsupported")
 
 # ------------------------------------------------------------------------------
 # External dependencies
