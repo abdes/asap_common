@@ -137,7 +137,7 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
   std::shared_ptr<spdlog::logger> logger_;
   /// Synchronization lock used to synchronize logging over this logger from
   /// multiple threads.
-  std::unique_ptr<std::mutex> logger_mutex_ = std::make_unique<std::mutex>();
+  std::unique_ptr<std::mutex> logger_mutex_{};
 
   /// Logger objects are created only by the Registry class.
   friend class Registry;

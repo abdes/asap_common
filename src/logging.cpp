@@ -38,7 +38,7 @@ Id &operator++(Id &target) {
 }
 
 /// Get the corresponding logger name for a logger id.
-inline constexpr const char *LoggerName(Id id) {
+inline const char *LoggerName(Id id) {
   switch (id) {
     // clang-format off
     case Id::MISC:     return "misc    ";
@@ -47,7 +47,7 @@ inline constexpr const char *LoggerName(Id id) {
     case Id::MAIN:     return "main    ";
     case Id::INVALID_: return "__DO_NOT_USE__";
     // omit default case to trigger compiler warning for missing cases
-      // clang-format on
+    // clang-format on
   };
   return "__INVALID__";
 }

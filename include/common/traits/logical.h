@@ -29,18 +29,23 @@ template <class B1, class... Bi>
 struct disjunction<B1, Bi...>
     : std::conditional<B1::value, B1, disjunction<Bi...> >::type {};
 
+#if (__cplusplus >= 201402L)
 template <class... Bi>
 constexpr bool conjunction_v = conjunction<Bi...>::value;
 
 template <class... Bi>
 constexpr bool disjunction_v = disjunction<Bi...>::value;
+#endif
 
 template <bool B>
 struct bool_constant : std::integral_constant<bool, B> {};
 
 template <class B>
 struct negation : bool_constant<!bool(B::value)> {};
+
+#if (__cplusplus >= 201402L)
 template <class B>
 constexpr bool negation_v = negation<B>::value;
+#endif
 
 }  // namespace asap
