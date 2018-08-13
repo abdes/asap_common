@@ -3,6 +3,8 @@
 #    (See accompanying file LICENSE or copy at
 #   https://opensource.org/licenses/BSD-3-Clause)
 
+message("=> [module: common]")
+
 # ------------------------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------------------------
@@ -42,7 +44,6 @@ set(target asap_common)
 set(target_export common)
 
 # Exit here if required dependencies are not met
-message(STATUS "Lib ${target}")
 
 
 # ------------------------------------------------------------------------------

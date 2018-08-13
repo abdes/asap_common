@@ -24,7 +24,6 @@ set(IDE_FOLDER "Tests")
 set(target asap_common_test)
 
 # Exit here if required dependencies are not met
-message(STATUS "Test Program ${target}")
 
 
 # ------------------------------------------------------------------------------
