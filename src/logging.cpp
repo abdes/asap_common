@@ -30,6 +30,7 @@ std::recursive_mutex Registry::loggers_mutex_;
 // Helpers for dealing with Logger Id
 // ---------------------------------------------------------------------------
 
+#if !defined(DOXYGEN_DOCUMENTATION_BUILD)
 namespace {
 
 Id &operator++(Id &target) {
@@ -53,6 +54,7 @@ inline const char *LoggerName(Id id) {
 }
 
 }  // namespace
+#endif // DOXYGEN_DOCUMENTATION_BUILD
 
 // ---------------------------------------------------------------------------
 // Logger

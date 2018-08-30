@@ -9,11 +9,11 @@
 
 namespace asap {
 
-//  Private copy constructor and copy assignment ensure classes derived from
-//  class noncopyable cannot be copied.
-
-namespace noncopyable_  // protection from unintended ADL
-{
+/*!
+ * NonCopiable is intended to be used as a \b private base class. It has deleted
+ * (C++11) copy constructor and copy assignment operator and can't be copied
+ * or assigned; a class that derives from it inherits these properties.
+ */
 class ASAP_COMMON_API NonCopiable {
  public:
   NonCopiable(const NonCopiable &) = delete;
@@ -29,13 +29,5 @@ class ASAP_COMMON_API NonCopiable {
   constexpr NonCopiable() = default;
   virtual ~NonCopiable() = default;
 };
-}  // namespace noncopyable_
-
-/*!
- * NonCopiable is intended to be used as a \b private base class. It has deleted
- * (C++11) copy constructor and copy assignment operator and can't be copied
- * or assigned; a class that derives from it inherits these properties.
- */
-typedef noncopyable_::NonCopiable NonCopiable;
 
 }  // namespace asap

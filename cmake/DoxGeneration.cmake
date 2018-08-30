@@ -22,7 +22,7 @@
 #
 # 3. Add install instructions
 #      install(
-#        DIRECTORY ${dox_root}/${target}
+#        DIRECTORY ${DOXYGEN_BUILD_DIR}/${target}
 #        DESTINATION ${INSTALL_DOC}
 #        COMPONENT docs
 #      )
@@ -31,22 +31,23 @@
 #
 
 
-macro(configure_doxyfile TARGET_NAME TARGET_TITLE TARGET_BRIEF TARGET_INPUT_PATH)
-  if (EXISTS "${CMAKE_SOURCE_DIR}/Doxyfile.in")
+macro(configure_doxyfile TARGET_NAME TARGET_TITLE TARGET_BRIEF
+    TARGET_INPUT_PATH)
+  if (EXISTS "${CMAKE_SOURCE_DIR}/doc/doxygen/Doxyfile.in")
     set(DOXY_TARGET_OUTPUT_DIR "${TARGET_NAME}")
     set(DOXY_TARGET_ROOT_DIR "") # ${DOXTOSRCDIR} - set(DOXTOSRCDIR "../src")
     set(DOXY_TARGET_NAME "${TARGET_NAME}")
     set(DOXY_TARGET_TITLE "${TARGET_TITLE}")
     set(DOXY_TARGET_BRIEF "${TARGET_BRIEF}")
     set(DOXY_TARGET_INPUT_PATH "${TARGET_INPUT_PATH}")
+    set(DOXY_COMPILER_PREDEFINED "${TARGET_COMPILER_DEFINES}")
     set(DOXY_TARGET_FILE_VERSION_FILTER "\"${PRINT_FILE_DATE_COMMAND_STR} \"")
-    if (NOT EXISTS "${dox_root}/${DOXY_TARGET_OUTPUT_DIR}")
-      file(MAKE_DIRECTORY "${dox_root}/${DOXY_TARGET_OUTPUT_DIR}")
+    if (NOT EXISTS "${DOXYGEN_BUILD_DIR}/${DOXY_TARGET_OUTPUT_DIR}")
+      file(MAKE_DIRECTORY "${DOXYGEN_BUILD_DIR}/${DOXY_TARGET_OUTPUT_DIR}")
     endif ()
-    configure_file("${CMAKE_SOURCE_DIR}/Doxyfile.in" "${dox_root}/${TARGET_NAME}_Doxyfile" @ONLY)
-    message(STATUS "Copy Doxyfile.in --> '${dox_root}/${TARGET_NAME}_Doxyfile'")
+    configure_file("${CMAKE_SOURCE_DIR}/doc/doxygen/Doxyfile.in" "${DOXYGEN_BUILD_DIR}/${TARGET_NAME}_Doxyfile" @ONLY)
   else ()
-    message(STATUS "WARNING: The '${CMAKE_SOURCE_DIR}/Doxyfile.in' file does not exist!")
+    message(STATUS "WARNING: The '${CMAKE_SOURCE_DIR}/doc/doxygen/Doxyfile.in' file does not exist!")
   endif ()
 endmacro(configure_doxyfile)
 
@@ -59,7 +60,7 @@ if (DOXYGEN_FOUND)
       COMMAND ${CMAKE_COMMAND} -E copy "${TARGET_NAME}_Doxyfile" "${TARGET_NAME}_Doxyfile.out"
       COMMAND ${DOXYGEN_EXECUTABLE} "${TARGET_NAME}_Doxyfile.out"
       COMMAND ${CMAKE_COMMAND} -E remove -f "${TARGET_NAME}_Doxyfile.out"
-      WORKING_DIRECTORY "${dox_root}" VERBATIM)
+      WORKING_DIRECTORY "${DOXYGEN_BUILD_DIR}" VERBATIM)
     add_dependencies(dox ${TARGET_NAME}_dox)
   endmacro()
   set_target_properties(dox PROPERTIES EXCLUDE_FROM_ALL TRUE)

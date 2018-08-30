@@ -368,6 +368,14 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Internal Helper Macros
+// ---------------------------------------------------------------------------
+
+// Base logging macros. It is expected that users will use the
+// convenience macros below rather than invoke these directly.
+#if !defined(DOXYGEN_DOCUMENTATION_BUILD)
+
 // Convert the line macro to a string literal for concatenation in log macros.
 #define DO_STRINGIZE(x) STRINGIZE(x)
 #define STRINGIZE(x) #x
@@ -381,17 +389,6 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 #else
 #define LOG_PREFIX " "
 #endif  // NDEBUG
-
-// ---------------------------------------------------------------------------
-// Helper macros
-// ---------------------------------------------------------------------------
-
-/// @name Logging macros
-//@{
-/*!
- * Base logging macros. It is expected that users will use the
- * convenience macros below rather than invoke these directly.
- */
 
 #define ASLOG_COMP_LEVEL(LOGGER, LEVEL)    \
   (static_cast<spdlog::level::level_enum>( \
@@ -431,7 +428,38 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
   } while (0)
 #endif  // NDEBUG
 
+#define GET_MISC_LOGGER() \
+  asap::logging::Registry::GetLogger(asap::logging::Id::MISC)
+
+#endif // DOXYGEN_DOCUMENTATION_BUILD
+
+// ---------------------------------------------------------------------------
+// User Convenience Macros
+// ---------------------------------------------------------------------------
+
+/// @name Logging macros
+//@{
+
+/**
+ * Check the class logger level against the provided one. Resolves to true if 
+ * the class logger level is <= to the given level.
+ */
 #define ASLOG_CHECK_LEVEL(LEVEL) ASLOG_COMP_LEVEL(ASLOGGER(), LEVEL)
+
+/**
+ * Convenience macro to get the class logger.
+ */
+#define ASLOGGER() __log_do_not_use_read_comment()
+
+/**
+ * Convenience macro to log to the class logger.
+ */
+#define ASLOG(LEVEL, ...) ASLOG_TO_LOGGER(ASLOGGER(), LEVEL, __VA_ARGS__)
+
+/**
+ * Convenience macro to flush logger.
+ */
+#define ASFLUSH_LOG() ASLOGGER().flush()
 
 /**
  * Convenience macro to log to a user-specified logger.
@@ -443,26 +471,9 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
   ASLOG_COMP_AND_LOG(LOGGER, LEVEL, __VA_ARGS__)
 
 /**
- * Convenience macro to get logger.
- */
-#define ASLOGGER() __log_do_not_use_read_comment()
-
-/**
- * Convenience macro to flush logger.
- */
-#define ASFLUSH_LOG() ASLOGGER().flush()
-
-/**
- * Convenience macro to log to the class' logger.
- */
-#define ASLOG(LEVEL, ...) ASLOG_TO_LOGGER(ASLOGGER(), LEVEL, __VA_ARGS__)
-
-/**
  * Convenience macro to log to the misc logger, which allows for logging without
  * of direct access to a logger.
  */
-#define GET_MISC_LOGGER() \
-  asap::logging::Registry::GetLogger(asap::logging::Id::MISC)
 #define ASLOG_MISC(LEVEL, ...) \
   ASLOG_TO_LOGGER(GET_MISC_LOGGER(), LEVEL, __VA_ARGS__)
 
