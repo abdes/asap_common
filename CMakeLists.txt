@@ -3,7 +3,19 @@
 #    (See accompanying file LICENSE or copy at
 #   https://opensource.org/licenses/BSD-3-Clause)
 
-message("=> [module: common]")
+
+# Meta information about the project
+set(META_MODULE_NAME                "asap_common")
+set(META_MODULE_DESCRIPTION         "Common functionality for asap based projects")
+set(META_MODULE_GITHUB_REPO         "asap_common")
+set(META_MODULE_VERSION_MAJOR       "0")
+set(META_MODULE_VERSION_MINOR       "1")
+set(META_MODULE_VERSION_PATCH       "1")
+set(META_MODULE_VERSION_REVISION    "${MODULE_GIT_REV}")
+set(META_MODULE_VERSION             "${META_MODULE_VERSION_MAJOR}.${META_MODULE_VERSION_MINOR}.${META_MODULE_VERSION_PATCH}")
+set(META_MODULE_NAME_VERSION        "${META_MODULE_PROJECT_NAME} v${META_MODULE_VERSION}")
+message("=> [module: common ${META_MODULE_VERSION}]")
+
 
 # ------------------------------------------------------------------------------
 # Configuration
