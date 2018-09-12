@@ -5,7 +5,7 @@
 
 
 # Meta information about the project
-set(META_MODULE_NAME                "asap_common")
+set(META_MODULE_NAME                "common")
 set(META_MODULE_DESCRIPTION         "Common functionality for asap based projects")
 set(META_MODULE_GITHUB_REPO         "asap_common")
 set(META_MODULE_VERSION_MAJOR       "0")
@@ -178,7 +178,7 @@ configure_doxyfile(${target}
 
 add_doxygen_target(${target})
 
-add_sphinx_target(${target} "Module common API")
+add_sphinx_target(${target})
 
 install(
   DIRECTORY ${DOXYGEN_BUILD_DIR}/${target}
