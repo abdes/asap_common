@@ -124,6 +124,7 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    * switch the current sink. See Registry::PushSink() and Registry::PopSink().
    *
    * @param [in] name the logger name.
+   * @param [in] id the logger's is.
    * @param [in] sink the sink to be used by this logger.
    *
    * @see Registry::GetLogger(Id)
@@ -463,16 +464,13 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 
 /**
  * Convenience macro to log to a user-specified logger.
- * Maps directly to ASLOG_COMP_AND_LOG - it could contain macro logic itself,
- * without redirection, but left in case various implementations are required in
- * the future (based on log level for example).
  */
 #define ASLOG_TO_LOGGER(LOGGER, LEVEL, ...) \
   ASLOG_COMP_AND_LOG(LOGGER, LEVEL, __VA_ARGS__)
 
 /**
  * Convenience macro to log to the misc logger, which allows for logging without
- * of direct access to a logger.
+ * direct access to a logger.
  */
 #define ASLOG_MISC(LEVEL, ...) \
   ASLOG_TO_LOGGER(GET_MISC_LOGGER(), LEVEL, __VA_ARGS__)

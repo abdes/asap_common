@@ -9,6 +9,8 @@
 
 namespace asap {
 
+/// Forms the logical conjunction of the type traits ..., effectively
+/// performing a logical AND on the sequence of traits.
 template <class...>
 struct conjunction : std::true_type {};
 
@@ -19,6 +21,8 @@ template <class B1, class... Bi>
 struct conjunction<B1, Bi...>
     : std::conditional<B1::value, conjunction<Bi...>, B1>::type {};
 
+/// Forms the logical disjunction of the type traits ..., effectively 
+/// performing a logical OR on the sequence of traits. 
 template <class...>
 struct disjunction : std::false_type {};
 
@@ -40,6 +44,7 @@ constexpr bool disjunction_v = disjunction<Bi...>::value;
 template <bool B>
 struct bool_constant : std::integral_constant<bool, B> {};
 
+/// Forms the logical negation of the type trait B.
 template <class B>
 struct negation : bool_constant<!bool(B::value)> {};
 

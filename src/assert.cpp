@@ -3,10 +3,10 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <common/assert.h>
 #include <asap/asap-features.h>
-#include <common/platform.h>
+#include <common/assert.h>
 #include <common/config.h>
+#include <common/platform.h>
 
 #if ASAP_USE_ASSERTS
 
@@ -116,7 +116,7 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 #elif defined(ASAP_WINDOWS)
 
 #include <mutex>
-// clang-format off
+   // clang-format off
 #include "windows.h"
 #include "winbase.h"
 #include "dbghelp.h"
@@ -229,6 +229,25 @@ void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
 }  // namespace asap
 
 #endif  // EXEC_INFO
+
+
+// GCC and clang will complain if you call printf with a non-literal (and if
+// you call it with a literal format string, they will check the format string
+// against the provided arguments). The __attribute__((__format__ (__printf__,
+// ...) tells the compiler that one of your parameters is a printf format
+// string and causes the checking to be applied when that function is called.
+// 
+// Since the compiler knows that the format string parameter will be checked
+// when your function is called, it won't complain about you using that
+// parameter as a format string inside your function.
+//
+// see: https://clang.llvm.org/docs/AttributeReference.html#format
+#if ASAP_COMPILER_IS_GNU || ASAP_COMPILER_IS_Clang
+#define ASAP_FORMAT(fmt, ellipsis) \
+  __attribute__((__format__(__printf__, fmt, ellipsis)))
+#else
+#define ASAP_FORMAT(fmt, ellipsis)
+#endif
 
 namespace {
 ASAP_FORMAT(1, 2)

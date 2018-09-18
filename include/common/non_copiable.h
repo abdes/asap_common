@@ -16,7 +16,9 @@ namespace asap {
  */
 class ASAP_COMMON_API NonCopiable {
  public:
+  /// Copy constructor (deleted)
   NonCopiable(const NonCopiable &) = delete;
+  /// Copy assignment operator (deleted)
   NonCopiable &operator=(const NonCopiable &) = delete;
 
  protected:
@@ -26,7 +28,9 @@ class ASAP_COMMON_API NonCopiable {
    * With C++2011, using an optimized and trivial constructor and similar
    * destructor can be enforced by declaring both and marking them default.
    */
+  /// Default constructor (default)
   constexpr NonCopiable() = default;
+  /// Destructor (default)
   virtual ~NonCopiable() = default;
 };
 
