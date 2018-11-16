@@ -12,6 +12,7 @@
 #include <common/asap_common_api.h>
 #include <common/non_copiable.h>
 #include <spdlog/fmt/ostr.h>  // for user defined objects logging
+#include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
 
 namespace asap {
@@ -194,7 +195,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
    * @return the previously used delegate.
    */
   spdlog::sink_ptr SwapSink(spdlog::sink_ptr sink) {
-    std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
     auto tmp = sink_delegate_;
     sink_delegate_ = std::move(sink);
     return tmp;
@@ -208,12 +209,12 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
    *
    * @param msg log message to be processed.
    */
-  void _sink_it(const spdlog::details::log_msg &msg) override {
+  void sink_it_(const spdlog::details::log_msg &msg) override {
     sink_delegate_->log(msg);
   }
 
   /// Called when this sink needs to flush any buffered log messages.
-  void _flush() override { sink_delegate_->flush(); }
+  void flush_() override { sink_delegate_->flush(); }
   //@}
 
  private:

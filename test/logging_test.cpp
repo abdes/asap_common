@@ -26,12 +26,12 @@ class TestSink : public spdlog::sinks::base_sink<Mutex> {
   int called_{0};
 
  protected:
-  void _sink_it(const spdlog::details::log_msg &msg) override {
+  void sink_it_(const spdlog::details::log_msg &msg) override {
     ++called_;
-    out_.write(msg.formatted.data(), msg.formatted.size());
+    out_.write(msg.raw.data(), msg.raw.size());
   }
 
-  void _flush() override {
+  void flush_() override {
     out_.flush();
   }
 };
@@ -104,7 +104,7 @@ TEST_CASE("TestLogWithPrefix", "[common][logging]") {
   auto *test_sink = new TestSink_mt();
   auto test_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(test_sink);
   Registry::PushSink(test_sink_ptr);
-  
+
   auto &test_logger = Registry::GetLogger(Id::TESTING);
 
   AS_DO_LOG(test_logger, debug, "message");
@@ -140,6 +140,9 @@ class MockSink : public spdlog::sinks::sink {
  public:
   void log(const spdlog::details::log_msg &) override { ++called_; }
   void flush() override {}
+  void set_pattern(const std::string &/*pattern*/) override {};
+  void set_formatter(std::unique_ptr<spdlog::formatter> /*sink_formatter*/) override {};
+
   void Reset() { called_ = 0; }
 
   int called_{0};

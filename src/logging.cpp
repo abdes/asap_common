@@ -10,6 +10,9 @@
 
 #include <common/assert.h>
 
+#include <spdlog/sinks/ansicolor_sink.h>
+
+
 namespace asap {
 namespace logging {
 
