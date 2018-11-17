@@ -29,6 +29,7 @@ class TestSink : public spdlog::sinks::base_sink<Mutex> {
   void sink_it_(const spdlog::details::log_msg &msg) override {
     ++called_;
     out_.write(msg.raw.data(), msg.raw.size());
+    out_.write("\n", 1);
   }
 
   void flush_() override {
