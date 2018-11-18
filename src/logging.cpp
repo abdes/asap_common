@@ -131,12 +131,12 @@ std::vector<Logger> &Registry::Loggers() {
 }
 
 std::vector<Logger> &Registry::all_loggers_() {
-  static auto *all_loggers = new std::vector<Logger>();
+  static std::vector<Logger> all_loggers;
   for (auto id = Id::MISC; id < Id::INVALID_; ++id) {
     auto name = LoggerName(id);
-    all_loggers->emplace_back(Logger(name, id, delegating_sink()));
+    all_loggers.emplace_back(Logger(name, id, delegating_sink()));
   }
-  return *all_loggers;
+  return all_loggers;
 }
 
 std::shared_ptr<DelegatingSink> &Registry::delegating_sink() {
@@ -154,7 +154,7 @@ DelegatingSink *Registry::delegating_sink_() {
       std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
 #endif
 
-  static auto *sink = new DelegatingSink(default_sink);
+  static auto sink = new DelegatingSink(default_sink);
   return sink;
 }
 
