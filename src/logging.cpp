@@ -10,7 +10,12 @@
 
 #include <common/assert.h>
 
-#include <spdlog/sinks/ansicolor_sink.h>
+#if defined _WIN32 && !defined(__cplusplus_winrt)
+# include <spdlog/sinks/wincolor_sink.h>
+#else
+# include <spdlog/sinks/ansicolor_sink.h>
+#endif
+
 
 
 namespace asap {
