@@ -29,7 +29,7 @@ class ASAP_COMMON_API NonCopiable {
    * destructor can be enforced by declaring both and marking them default.
    */
   /// Default constructor (default)
-  constexpr NonCopiable() = default;
+  NonCopiable() = default;
   /// Destructor (default)
   virtual ~NonCopiable() = default;
 };
