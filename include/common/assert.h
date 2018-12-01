@@ -17,16 +17,16 @@
 /*!
  * @def ASAP_UNREACHABLE()
  * @hideinitializer
- * 
+ *
  * @brief Macro that can be used to indicate that the control flow will never
  * reach that point.
- * 
+ *
  * This macro can be very useful to eliminate warnings by some compilers when
  * a switch statements covers all cases but does not provide a default case.
  * Consider for example the following switch statement that handles all the
  * possible values of the parameter \em col and would generate a warning from
  * some compilers because it has no default case.
- * 
+ *
  * @code
  * enum class ColorChannel { RED, GREEN, BLUE };
  * void doSomething(ColorChannel col) {
@@ -68,12 +68,25 @@
 // clang-format on
 /// @endcond (INTERNAL_DETAIL)
 
-
 namespace asap {
 
-// internal
-void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
-                                 char const* function, char const* val,
+/*!
+ * @brief Fail execution with an assertion described using the provided
+ * information.
+ *
+ * This function is used internally in the assertion macros. It is not intended
+ * to be used as-is. Use the macros instead.
+ *
+ * @param expr the expression that evaluated to false.
+ * @param line the source code line number.
+ * @param file the source code file name.
+ * @param function the function name within which the assertion failed.
+ * @param val a value to print for debug (nothing printed out if val is null).
+ * @param kind if 1, indicates a precondition that failed, otherwise it's a
+ * general assertion.
+ */
+void ASAP_COMMON_API assert_fail(const char *expr, int line, char const *file,
+                                 char const *function, char const *val,
                                  int kind = 0);
 
 }  // namespace asap
@@ -89,25 +102,24 @@ void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
 #define ASAP_ASSERT_FAIL() assert(false)
 #define ASAP_ASSERT_FAIL_VAL(x) assert(false)
 
-#else // !ASAP_USE_SYSTEM_ASSERTS
+#else  // !ASAP_USE_SYSTEM_ASSERTS
 #include <sstream>
 
 /// @cond (INTERNAL_DETAIL)
-// This is to disable the warning of conditional expressions being constant 
+// This is to disable the warning of conditional expressions being constant
 // in msvc.
 // clang-format off
 #if ASAP_COMPILER_IS_MSVC
 #  define ASAP_WHILE_0  \
-	   __pragma( warning(push) ) \
-	   __pragma( warning(disable:4127) ) \
-	   while (false) \
-	   __pragma( warning(pop) )
+       __pragma( warning(push) ) \
+       __pragma( warning(disable:4127) ) \
+       while (false) \
+       __pragma( warning(pop) )
 #else
 #  define ASAP_WHILE_0 while (false)
 #endif
 // clang-format on
 /// @endcond (INTERNAL_DETAIL)
-
 
 /*!
  * @hideinitializer
@@ -168,7 +180,7 @@ void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
 
 /*!
  * @hideinitializer
- * @brief Unconditionally fail, printing an assertion diagnostic message 
+ * @brief Unconditionally fail, printing an assertion diagnostic message
  * including the value \em x and abort the program.
  */
 #define ASAP_ASSERT_FAIL_VAL(x)                                             \
@@ -180,14 +192,29 @@ void ASAP_COMMON_API assert_fail(const char* expr, int line, char const* file,
   }                                                                         \
   ASAP_WHILE_0
 
-#endif // !ASAP_USE_SYSTEM_ASSERTS
+#endif  // !ASAP_USE_SYSTEM_ASSERTS
 
 #else  // !ASAP_USE_ASSERTS
 
-#define ASAP_ASSERT(a) do { } ASAP_WHILE_0
-#define ASAP_ASSERT_PRECOND(a) do { } ASAP_WHILE_0
-#define ASAP_ASSERT_VAL(a, b) do { } ASAP_WHILE_0
-#define ASAP_ASSERT_FAIL() do { } ASAP_WHILE_0
-#define ASAP_ASSERT_FAIL_VAL(a) do { } ASAP_WHILE_0
+#define ASAP_ASSERT(a) \
+  do {                 \
+  }                    \
+  ASAP_WHILE_0
+#define ASAP_ASSERT_PRECOND(a) \
+  do {                         \
+  }                            \
+  ASAP_WHILE_0
+#define ASAP_ASSERT_VAL(a, b) \
+  do {                        \
+  }                           \
+  ASAP_WHILE_0
+#define ASAP_ASSERT_FAIL() \
+  do {                     \
+  }                        \
+  ASAP_WHILE_0
+#define ASAP_ASSERT_FAIL_VAL(a) \
+  do {                          \
+  }                             \
+  ASAP_WHILE_0
 
 #endif  // ASAP_USE_ASSERTS

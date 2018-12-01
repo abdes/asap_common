@@ -12,14 +12,14 @@
 
 #include <asap/asap-features.h>
 
+/// Namespace holding the API for unicode operations relying entirely on UTF-8
+/// as the internal storage format for text (described in detail at
+/// https://utf8everywhere.org).
 namespace nowide {
-///
-/// \brief Namespace that holds basic operations on UTF encoded sequences
-///
-/// All functions defined in this namespace do not require linking with
-/// Boost.Locale library
-///
+
+/// Namespace that holds basic operations on UTF encoded sequences.
 namespace utf {
+
 /// \cond INTERNAL
 #if ASAP_COMPILER_IS_GNU
 #define NOWIDE_LIKELY(x) __builtin_expect((x), 1)
@@ -30,30 +30,22 @@ namespace utf {
 #endif
 /// \endcond
 
-///
-/// \brief The integral type type that can hold a Unicode code point
-///
+/// The integral type that can hold a Unicode code point.
 typedef std::uint32_t code_point;
 
-///
-/// \brief Special constant that defines illegal code point
-///
+/// Special constant that defines illegal code point.
 static const code_point illegal = 0xFFFFFFFFu;
 
-///
-/// \brief Special constant that defines incomplete code point
-///
+/// Special constant that defines incomplete code point.
 static const code_point incomplete = 0xFFFFFFFEu;
 
-///
-/// \brief the function checks if \a v is a valid code point
-///
+/// Checks if \a v is a valid code point.
 inline bool is_valid_codepoint(code_point v) {
   if (v > 0x10FFFF) return false;
   return (v < 0xD800 || v > 0xDFFF);  // surrogates
 }
 
-#ifdef NOWIDE_DOXYGEN
+#ifdef DOXYGEN_DOCUMENTATION_BUILD
 ///
 /// \brief UTF Traits class - functions to convert UTF sequences to and from
 /// Unicode code points
@@ -67,9 +59,9 @@ struct utf_traits {
   ///
   /// Read one code point from the range [p,e) and return it.
   ///
-  /// - If the sequence that was read is incomplete sequence returns \ref
+  /// - If the sequence that was read is incomplete sequence returns
   /// incomplete,
-  /// - If illegal sequence detected returns \ref illegal
+  /// - If illegal sequence detected returns illegal
   ///
   /// Requirements
   ///
@@ -135,7 +127,7 @@ struct utf_traits {
   static code_point decode_valid(Iterator &p);
 };
 
-#else
+#else  // DOXYGEN_DOCUMENTATION_BUILD
 
 template <typename CharType, int size = sizeof(CharType)>
 struct utf_traits;
@@ -372,7 +364,8 @@ struct utf_traits<CharType, 4> {
 
 };  // utf32
 
-#endif
+#endif  // DOXYGEN_DOCUMENTATION_BUILD
 
 }  // namespace utf
+
 }  // namespace nowide

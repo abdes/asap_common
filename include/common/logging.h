@@ -15,7 +15,9 @@
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
 
+/// Top level namespace.
 namespace asap {
+/// Namespace for logging related APIs.
 namespace logging {
 
 // ---------------------------------------------------------------------------
@@ -46,8 +48,11 @@ enum class Id {
  */
 class ASAP_COMMON_API Logger : private asap::NonCopiable {
  public:
-  /* This is simple mapping between Logger severity levels and spdlog severity
-   * levels. The only reason for this mapping is to go around the fact that
+  /*!
+   * @brief A simple mapping between Logger severity levels and spdlog severity
+   * levels.
+   *
+   * The only reason for this mapping is to go around the fact that
    * spdlog defines level as err but the method to log at err level is called
    * LOGGER.error not LOGGER.err. All other level are fine.
    */
@@ -105,6 +110,11 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    */
   void SetLevel(spdlog::level::level_enum level) { logger_->set_level(level); }
 
+  /*!
+   * @brief Get the logging level for this logger.
+   *
+   * @return This logger's logging level.
+   */
   spdlog::level::level_enum GetLevel() const { return logger_->level(); }
 
   /// Default format for all loggers.
@@ -385,8 +395,6 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
 #ifndef NDEBUG
 std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
                                               char const *line);
-//#define LOG_PREFIX "[" __FILE__ ":" LINE_STRING "] "
-//#define LOG_PREFIX " "
 #define LOG_PREFIX asap::logging::FormatFileAndLine(__FILE__, LINE_STRING)
 #else
 #define LOG_PREFIX " "
@@ -433,7 +441,7 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 #define GET_MISC_LOGGER() \
   asap::logging::Registry::GetLogger(asap::logging::Id::MISC)
 
-#endif // DOXYGEN_DOCUMENTATION_BUILD
+#endif  // DOXYGEN_DOCUMENTATION_BUILD
 
 // ---------------------------------------------------------------------------
 // User Convenience Macros
@@ -443,7 +451,7 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 //@{
 
 /**
- * Check the class logger level against the provided one. Resolves to true if 
+ * Check the class logger level against the provided one. Resolves to true if
  * the class logger level is <= to the given level.
  */
 #define ASLOG_CHECK_LEVEL(LEVEL) ASLOG_COMP_LEVEL(ASLOGGER(), LEVEL)

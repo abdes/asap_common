@@ -11,20 +11,12 @@
 
 namespace nowide {
 namespace conv {
-///
-/// \addtogroup codepage
-///
-/// @{
 
-///
-/// \brief The excepton that is thrown in case of conversion error
-///
+/// The exception that is thrown in case of conversion error.
 class conversion_error : public std::runtime_error {
  public:
   conversion_error() : std::runtime_error("Conversion failed") {}
 };
-
-/// @}
 
 }  // namespace conv
 }  // namespace nowide

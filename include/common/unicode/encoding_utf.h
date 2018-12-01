@@ -13,12 +13,12 @@
 #include <common/unicode/encoding_errors.h>
 #include <common/unicode/utf.h>
 
-
 namespace nowide {
+
+/// Namespace holding conversion functions between different unicode encodings.
 namespace conv {
-///
+
 /// Convert a Unicode text in range [begin,end) to other Unicode encoding
-///
 template <typename CharOut, typename CharIn,
           typename Traits = std::char_traits<CharOut>,
           class Allocator = std::allocator<CharOut>>
@@ -43,9 +43,7 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
   return result;
 }
 
-///
 /// Convert a Unicode NUL terminated string \a str other Unicode encoding
-///
 template <typename CharOut, typename CharIn,
           typename Traits = std::char_traits<CharOut>,
           class Allocator = std::allocator<CharOut>>
@@ -56,9 +54,7 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
   return utf_to_utf<CharOut, CharIn, Traits, Allocator>(str, end, alloc);
 }
 
-///
 /// Convert a Unicode string \a str other Unicode encoding
-///
 template <typename CharOut, typename CharIn,
           typename Traits = std::char_traits<CharOut>,
           class Allocator = std::allocator<CharOut>>
@@ -71,4 +67,3 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
 
 }  // namespace conv
 }  // namespace nowide
-

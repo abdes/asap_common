@@ -166,7 +166,14 @@ DelegatingSink *Registry::delegating_sink_() {
 // ---------------------------------------------------------------------------
 // Helper for file name and line number formatting
 // ---------------------------------------------------------------------------
-
+#ifndef NDEBUG
+/*!
+ * @brief Make a string with the soruce code file name and line number at which
+ * the log message was produced.
+ * @param file source code file name.
+ * @param line source code line number.
+ * @return a formatted string with the file name and line number.
+ */
 std::string FormatFileAndLine(char const *file, char const *line) {
   constexpr static int FILE_MAX_LENGTH = 70;
   std::ostringstream ostr;
@@ -179,6 +186,7 @@ std::string FormatFileAndLine(char const *file, char const *line) {
        << std::setw(5) << std::setfill('0') << std::right << line << "] ";
   return ostr.str();
 }
+#endif // NDEBUG
 
 }  // namespace logging
 }  // namespace asap
