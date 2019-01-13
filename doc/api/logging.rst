@@ -1,34 +1,27 @@
 Logging
 =======
 
-Logging features provided by the ``asap`` ``common`` module are abstracted into asimple and minimalistic interface. Under the hood, the logging framework used
-for the implementation is the excellent `spdlog <https://github.com/gabime/spdlog>`_ selected for its performance, light weight
-and clean interface.
+Logging features provided by the ``asap`` ``common`` module are abstracted into
+a simple and minimalistic interface. Under the hood, the logging framework used
+for the implementation is the excellent `spdlog <https://github.com/gabime/spdlog>`_
+selected for its performance, light weight and clean interface.
 
 Design Rationale
 ----------------
 
 While spdlog or other frameworks offer a nice interface and can achieve the
 expected results with no abstraction layer above, they are designed as a
-generic frameowkr that caters for many more scenarios than what is required.
+generic framework that caters for many more scenarios than what is required.
 
 Over the course of the development of the ``asap`` modules, a certain usage
 model became stronger, and that usage model (described below) resulted in the
 current design of the logging interface.
 
-* We encapsulate the underlying frameowrk logger into a smaller interface
-  that just offeres what is needed. This is represented by
+* We encapsulate the underlying framework logger into a smaller interface
+  that just offers what is needed. This is represented by
   the :class:`asap::logging::Logger` class.
 
-* Loggers within an application should be well known, documented and referring
-  to well known submodules. Therefore, we made the explicit choice to identify
-  all loggers in the application with a statically defined ID part of the
-  :enum:`asap::logging::Id` enum. (TODO: change the logging interface in the
-  ``common`` module to allow the application to specify application specific
-  logger id's without needing to fork the common submodule.)
-
-* The use of well know loggers, identified by statically defined id's, allows
-  for most of the boilerplate code to be written only once and totally hidden
+* Most of the boilerplate code should be written only once and totally hidden
   from the application. This includes formatters, sinks, filtering, etc... and
   this is mostly provided through the :class:`asap::logging::Registry` class.
 
@@ -37,8 +30,8 @@ current design of the logging interface.
   when inherited from, adds support for logging from anywhere within the
   class's implementation by simply using :c:macro:`ASLOG` macro.
 
-* An advanced use case requiring the logging sink to be changed at runtime (
-  something not allowed by spdlog) was identified and handled through the
+* An advanced use case requiring the logging sink to be changed at runtime
+  (something not allowed by spdlog) was identified and handled through the
   introduction of a special purpose sink implemented by the
   :class:`asap::logging::DelegatingSink` class.
 
