@@ -34,42 +34,12 @@ std::mutex Registry::sinks_mutex_;
 // Synchronization mutex for the loggers collection.
 std::recursive_mutex Registry::loggers_mutex_;
 
-// ---------------------------------------------------------------------------
-// Helpers for dealing with Logger Id
-// ---------------------------------------------------------------------------
-
-#if !defined(DOXYGEN_DOCUMENTATION_BUILD)
-namespace {
-
-Id &operator++(Id &target) {
-  target = static_cast<Id>(static_cast<int>(target) + 1);
-  return target;
-}
-
-/// Get the corresponding logger name for a logger id.
-inline const char *LoggerName(Id id) {
-  switch (id) {
-    // clang-format off
-    case Id::MISC:     return "misc    ";
-    case Id::TESTING:  return "testing ";
-    case Id::COMMON:   return "common  ";
-    case Id::MAIN:     return "main    ";
-    case Id::INVALID_: return "__DO_NOT_USE__";
-    // omit default case to trigger compiler warning for missing cases
-    // clang-format on
-  };
-  return "__INVALID__";
-}
-
-}  // namespace
-#endif // DOXYGEN_DOCUMENTATION_BUILD
 
 // ---------------------------------------------------------------------------
 // Logger
 // ---------------------------------------------------------------------------
 
-Logger::Logger(std::string name, logging::Id id, spdlog::sink_ptr sink)
-    : id_(id) {
+Logger::Logger(std::string name, spdlog::sink_ptr sink) {
   logger_ = std::make_shared<spdlog::logger>(name, sink);
   logger_->set_pattern(DEFAULT_LOG_FORMAT);
   logger_->set_level(spdlog::level::trace);
@@ -77,9 +47,15 @@ Logger::Logger(std::string name, logging::Id id, spdlog::sink_ptr sink)
   logger_->flush_on(spdlog::level::critical);
 }
 
-spdlog::logger &Registry::GetLogger(Id id) {
+spdlog::logger &Registry::GetLogger(std::string const &name) {
   std::lock_guard<std::recursive_mutex> lock(loggers_mutex_);
-  return *(Loggers()[static_cast<int>(id)].logger_);
+  auto &loggers = Loggers();
+  auto search = loggers.find(name);
+  if (search == loggers.end()) {
+    auto new_logger = loggers.emplace(name, Logger(name, delegating_sink()));
+    search = new_logger.first;
+  }
+  return *(search->second.logger_);
 }
 
 // ---------------------------------------------------------------------------
@@ -88,14 +64,14 @@ spdlog::logger &Registry::GetLogger(Id id) {
 
 void Registry::PushSink(spdlog::sink_ptr sink) {
   std::lock_guard<std::mutex> lock(sinks_mutex_);
-  auto &sinks = Sinks();
+  auto &sinks = sinks_();
   // Push the current sink on the stack and use the new one
   sinks.emplace(delegating_sink()->SwapSink(sink));
 }
 
 void Registry::PopSink() {
   std::lock_guard<std::mutex> lock(sinks_mutex_);
-  auto &sinks = Sinks();
+  auto &sinks = sinks_();
   ASAP_ASSERT(!sinks.empty() &&
               "call to PopSink() not matching a previous call to PushSink()");
   if (!sinks.empty()) {
@@ -106,7 +82,7 @@ void Registry::PopSink() {
   }
 }
 
-std::stack<spdlog::sink_ptr> &Registry::Sinks() {
+std::stack<spdlog::sink_ptr> &Registry::sinks_() {
   static std::stack<spdlog::sink_ptr> sinks;
   return sinks;
 }
@@ -114,33 +90,32 @@ std::stack<spdlog::sink_ptr> &Registry::Sinks() {
 void Registry::SetLogLevel(spdlog::level::level_enum log_level) {
   std::lock_guard<std::recursive_mutex> lock(loggers_mutex_);
   auto &loggers = Loggers();
-  std::for_each(loggers.begin(), loggers.end(), [log_level](Logger &log) {
+  for (auto &log : loggers) {
     // Thread safe
-    log.SetLevel(log_level);
-  });
+    log.second.SetLevel(log_level);
+  }
 }
 
 void Registry::SetLogFormat(const std::string &log_format) {
   std::lock_guard<std::recursive_mutex> lock(loggers_mutex_);
   auto &loggers = Loggers();
-  std::for_each(loggers.begin(), loggers.end(), [log_format](Logger &log) {
+  for (auto &log : loggers) {
     // Not thread safe
-    std::lock_guard<std::mutex> log_lock(*log.logger_mutex_.get());
-    log.logger_->set_pattern(log_format);
-  });
-}
-
-std::vector<Logger> &Registry::Loggers() {
-  static auto &all_loggers_static = all_loggers_();
-  return all_loggers_static;
-}
-
-std::vector<Logger> &Registry::all_loggers_() {
-  static std::vector<Logger> all_loggers;
-  for (auto id = Id::MISC; id < Id::INVALID_; ++id) {
-    auto name = LoggerName(id);
-    all_loggers.emplace_back(Logger(name, id, delegating_sink()));
+    std::lock_guard<std::mutex> log_lock(*log.second.logger_mutex_.get());
+    log.second.logger_->set_pattern(log_format);
   }
+}
+
+std::unordered_map<std::string, Logger> &Registry::Loggers() {
+  static auto &loggers_static = predefined_loggers_();
+  return loggers_static;
+}
+
+std::unordered_map<std::string, Logger> &Registry::predefined_loggers_() {
+  static std::unordered_map<std::string, Logger> all_loggers;
+  all_loggers.emplace("misc", Logger("misc", delegating_sink()));
+  all_loggers.emplace("testing", Logger("testing", delegating_sink()));
+  all_loggers.emplace("main", Logger("main", delegating_sink()));
   return all_loggers;
 }
 

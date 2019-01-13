@@ -7,6 +7,7 @@
 
 #include <stack>   // for stacking sinks
 #include <string>  // for std::string
+#include <unordered_map> // for the collection of loggers
 #include <thread>  // for std::mutex
 
 #include <common/asap_common_api.h>
@@ -21,25 +22,6 @@ namespace asap {
 namespace logging {
 
 // ---------------------------------------------------------------------------
-// Looger IDs
-// ---------------------------------------------------------------------------
-
-/*!
- * @enum asap::logging::Id
- * @brief Exhaustive list of logger ids.
- *
- * Used in declaring Loggable<ID> classes. Apart from this use case, the rest
- * of the logging macros only use logger names.
- */
-enum class Id {
-  MISC,
-  TESTING,
-  COMMON,
-  MAIN,
-  INVALID_  // MUST BE THE LAST ONE
-};
-
-// ---------------------------------------------------------------------------
 // Logger
 // ---------------------------------------------------------------------------
 
@@ -52,9 +34,9 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    * @brief A simple mapping between Logger severity levels and spdlog severity
    * levels.
    *
-   * The only reason for this mapping is to go around the fact that
-   * spdlog defines level as err but the method to log at err level is called
-   * LOGGER.error not LOGGER.err. All other level are fine.
+   * The only reason for this mapping is to go around the fact that spdlog
+   * defines level as err but the method to log at err level is called
+   * LOGGER.error not LOGGER.err. All other levels are fine.
    */
   enum class Level {
     trace = spdlog::level::trace,
@@ -68,8 +50,7 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
 
   /// Move constructor
   Logger(Logger &&other) noexcept
-      : id_(other.id_),
-        logger_(std::move(other.logger_)),
+      : logger_(std::move(other.logger_)),
         logger_mutex_(std::move(other.logger_mutex_)){};
 
   /// Move assignment
@@ -96,14 +77,6 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
   const std::string &Name() const { return logger_->name(); }
 
   /*!
-   * @brief Get this logger's id.
-   *
-   * @return the logger id.
-   * @see Id
-   */
-  logging::Id Id() const { return id_; }
-
-  /*!
    * @brief Set the logging level for this logger (e.g. debug, warning...).
    *
    * @param [in] level logging level.
@@ -127,7 +100,7 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    * for its log messages.
    *
    * Logger objects cannot be created directly. Instead, use the Registry class
-   * to obtain a Logger for a specific ID.
+   * to obtain a Logger for a specific name.
    *
    * In spdlog, loggers get assigned a sink or several sinks only at creation
    * and have to continue using that sink for the rest of their lifetime.
@@ -135,16 +108,12 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    * switch the current sink. See Registry::PushSink() and Registry::PopSink().
    *
    * @param [in] name the logger name.
-   * @param [in] id the logger's is.
    * @param [in] sink the sink to be used by this logger.
    *
-   * @see Registry::GetLogger(Id)
-   * @see Id
+   * @see Registry::GetLogger(std::string)
    */
-  Logger(std::string name, logging::Id id, spdlog::sink_ptr sink);
+  Logger(std::string name, spdlog::sink_ptr sink);
 
-  /// The logger id
-  logging::Id id_;
   /// The underlying spdlog::logger instance.
   std::shared_ptr<spdlog::logger> logger_;
   /// Synchronization lock used to synchronize logging over this logger from
@@ -228,7 +197,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
   //@}
 
  private:
-  /// The deleagte sink.
+  /// The delegate sink.
   spdlog::sink_ptr sink_delegate_;
 };
 
@@ -242,7 +211,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
  *
  * The logging registry creates and manages all the named loggers in the
  * application. It can be used to:
- *   - obtain any registered logger by its ID,
+ *   - obtain any registered logger by its name,
  *   - set logging level for all registered loggers,
  *   - change the logging format,
  *   - manage a stack of sinks where the current sink can be temporarily
@@ -256,7 +225,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
  * ```
  * {
  *   auto &logger =
- *     asap::logging::Registry::GetLogger(asap::logging::Id::TESTING);
+ *     asap::logging::Registry::GetLogger("testing");
  *   ASLOG_TO_LOGGER(debug, "starting...");
  *
  *   // Initialize a complex GUI system
@@ -296,19 +265,19 @@ class ASAP_COMMON_API Registry {
   static void SetLogFormat(const std::string &log_format);
 
   /*!
-   * Get a registered logger by ID.
+   * @brief Get a logger by its name.
    *
-   * @param [in] id the unique identifier of the logger to fetch. Logger ids are
-   * defined once as part of the Id enum class.
+   * This method automatically registers a new logger for the given name if no
+   * corresponding one has been already registered.
    *
-   * @return The logger corresponding to the given id. It is always guaranteed
-   * to succeed as all loggers are known at compile time and are created as soon
-   * as any attempt is made to use the registry.
+   * @param [in] name the name of the logger to fetch.
+   *
+   * @return The logger corresponding to the given name.
    */
-  static spdlog::logger &GetLogger(Id id);
+  static spdlog::logger &GetLogger(std::string const &name);
 
   /// API access to the collection of registered loggers.
-  static std::vector<Logger> &Loggers();
+  static std::unordered_map<std::string, Logger> &Loggers();
 
   /*!
    * @brief Use the given sink for all subsequent logging operations until a
@@ -341,15 +310,15 @@ class ASAP_COMMON_API Registry {
   // caches the static member to optimize the call.
 
   /// Internal initialization of the static collection of loggers.
-  static std::vector<Logger> &all_loggers_();
+  static std::unordered_map<std::string, Logger> &predefined_loggers_();
   /// A synchronization object for concurrent access to the collection of
   /// loggers.
   static std::recursive_mutex loggers_mutex_;
 
   /// API access to the stack of sinks. We don't do any expensive initialization
   /// here, so no need for a second level of access.
-  static std::stack<spdlog::sink_ptr> &Sinks();
-  /// A sunchronization object for concurrent access to the collection of sinks.
+  static std::stack<spdlog::sink_ptr> &sinks_();
+  /// A synchronization object for concurrent access to the collection of sinks.
   static std::mutex sinks_mutex_;
 
   /// API access to the delegating sink.
@@ -363,10 +332,10 @@ class ASAP_COMMON_API Registry {
 // ---------------------------------------------------------------------------
 
 /*!
- * @brief Mixin class that allows any class to peform logging with a logger of a
- * particular ID.
+ * @brief Mixin class that allows any class to perform logging with a logger of
+ * a particular name.
  */
-template <Id ID>
+template <typename T>
 class ASAP_COMMON_TEMPLATE_API Loggable {
  protected:
   /*!
@@ -375,7 +344,7 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
    * logging.
    */
   static spdlog::logger &__log_do_not_use_read_comment() {
-    static spdlog::logger &instance = Registry::GetLogger(ID);
+    static spdlog::logger &instance = Registry::GetLogger(T::LOGGER_NAME);
     return instance;
   }
 };
@@ -439,7 +408,7 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 #endif  // NDEBUG
 
 #define GET_MISC_LOGGER() \
-  asap::logging::Registry::GetLogger(asap::logging::Id::MISC)
+  asap::logging::Registry::GetLogger("misc")
 
 #endif  // DOXYGEN_DOCUMENTATION_BUILD
 

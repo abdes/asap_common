@@ -43,15 +43,19 @@ using TestSink_st = TestSink<spdlog::details::null_mutex>;
 namespace asap {
 namespace logging {
 
+
+class Foo : Loggable<Foo> {
+ public:
+  Foo() { ASLOG(trace, "Foo constructor"); }
+
+  static const char * LOGGER_NAME;
+};
+const char * Foo::LOGGER_NAME = "foo";
+
 TEST_CASE("TestLoggable", "[common][logging]") {
   auto *test_sink = new TestSink_mt();
   auto test_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(test_sink);
   Registry::PushSink(test_sink_ptr);
-
-  class Foo : Loggable<Id::TESTING> {
-   public:
-    Foo() { ASLOG(trace, "Foo constructor"); }
-  };
 
   Foo foo;
   REQUIRE(test_sink->called_);
@@ -73,7 +77,7 @@ TEST_CASE("TestMultipleThreads", "[common][logging]") {
       ASLOG_MISC(debug, "THREAD_1: {}", ii);
   });
   std::thread th2([]() {
-    auto &test_logger = Registry::GetLogger(Id::TESTING);
+    auto &test_logger = Registry::GetLogger("testing");
     for (auto ii = 0; ii < 5; ++ii)
       ASLOG_TO_LOGGER(test_logger, trace, "THREAD_2: {}", ii);
   });
@@ -106,7 +110,7 @@ TEST_CASE("TestLogWithPrefix", "[common][logging]") {
   auto test_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(test_sink);
   Registry::PushSink(test_sink_ptr);
 
-  auto &test_logger = Registry::GetLogger(Id::TESTING);
+  auto &test_logger = Registry::GetLogger("testing");
 
   AS_DO_LOG(test_logger, debug, "message");
   REQUIRE(test_sink->called_ == 1);
@@ -156,7 +160,7 @@ TEST_CASE("TestLogPushSink", "[common][logging]") {
   auto first_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(first_mock);
   auto second_sink_ptr = std::shared_ptr<spdlog::sinks::sink>(second_mock);
 
-  auto &test_logger = Registry::GetLogger(Id::TESTING);
+  auto &test_logger = Registry::GetLogger("testing");
   Registry::PushSink(first_sink_ptr);
   ASLOG_TO_LOGGER(test_logger, debug, "message");
 
