@@ -112,7 +112,7 @@ set(private_compile_options)
 # Libraries
 # ------------------------------------------------------------------------------
 
-set(public_libraries spdlog)
+set(public_libraries spdlog::spdlog)
 if (WIN32)
   list(APPEND public_libraries dbghelp)
 endif (WIN32)

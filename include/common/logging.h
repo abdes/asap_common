@@ -12,7 +12,7 @@
 
 #include <common/asap_common_api.h>
 #include <common/non_copiable.h>
-#include <spdlog/fmt/ostr.h>  // for user defined objects logging
+
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
 
