@@ -194,11 +194,13 @@ struct utf_traits<CharType, 1> {
         tmp = *p++;
         if (!is_trail(tmp)) return illegal;
         c = (c << 6) | (tmp & 0x3F);
+        /* FALLTHRU */
       case 2:
         if (NOWIDE_UNLIKELY(p == e)) return incomplete;
         tmp = *p++;
         if (!is_trail(tmp)) return illegal;
         c = (c << 6) | (tmp & 0x3F);
+        /* FALLTHRU */
       case 1:
         if (NOWIDE_UNLIKELY(p == e)) return incomplete;
         tmp = *p++;
