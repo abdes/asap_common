@@ -70,6 +70,7 @@ set(public_headers
   "include/common/assert.h"
   "include/common/non_copiable.h"
   "include/common/logging.h"
+  "include/common/flag_ops.h"
   # traits module
   "include/common/traits/logical.h"
   # unicode module

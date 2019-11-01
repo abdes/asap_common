@@ -40,6 +40,7 @@ set(sources
   "logging_test.cpp"
   "traits_logical_test.cpp"
   "unicode_convert_test.cpp"
+  "flag_ops_test.cpp"
   "main.cpp"
   ${public_headers}
 )
