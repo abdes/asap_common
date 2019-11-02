@@ -15,4 +15,5 @@ API reference
    C++ language <api/cpp>
    Logging <api/logging>
    Unicode support <api/unicode>
+   Mask/Flags manipulation <api/flags>
 

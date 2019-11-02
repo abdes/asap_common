@@ -5,26 +5,67 @@
 
 #pragma once
 
+#include <common/traits/logical.h>
+
 namespace asap {
 
-template <typename T>
-inline void FlagSet(T &mask, T flag) {
-  mask |= flag;
+/*!
+ * @brief Set bits in a mask based on the bits set in flags.
+ *
+ * @param[in,out] mask   the bitset mask to be changed.
+ * @param[in]     flags  the flags to set in the mask. May contain one or more
+ * bits to set.
+ */
+template <typename T,
+          typename std::enable_if<asap::disjunction<
+              std::is_arithmetic<T>, std::is_enum<T>>::value>::type * = nullptr>
+void FlagSet(T &mask, T flags) {
+  mask |= flags;
 }
 
-template <typename T>
-inline void FlagClear(T &mask, T flag) {
-  mask &= ~flag;
+/*!
+ * @brief Clear bits in a mask based on the bits set in flags.
+ *
+ * @param[in,out] mask   the bitset mask to be changed.
+ * @param[in]     flags  the flags to clear in the mask. May contain one or more
+ * bits to clear.
+ */
+template <typename T,
+          typename std::enable_if<asap::disjunction<
+              std::is_arithmetic<T>, std::is_enum<T>>::value>::type * = nullptr>
+void FlagClear(T &mask, T flags) {
+  mask &= ~flags;
 }
 
-template <typename T>
-inline void FlagFlip(T &mask, T flag) {
-  mask ^= flag;
+/*!
+ * @brief Flip bits ('0' to '1' and '1' to '0') in a mask based on the bits set
+ * in flags.
+ *
+ * @param[in,out] mask   the bitset mask to be changed.
+ * @param[in]     flags  the flags to flip in the mask. May contain one or more
+ * bits to set.
+ */
+template <typename T,
+          typename std::enable_if<asap::disjunction<
+              std::is_arithmetic<T>, std::is_enum<T>>::value>::type * = nullptr>
+void FlagFlip(T &mask, T flags) {
+  mask ^= flags;
 }
 
-template <typename T>
-inline bool FlagTest(T &mask, T flag) {
-  return (mask & flag) == flag;
+/*!
+ * @brief Check if the bits set in `flags` are also set in `mask`.
+ *
+ * @param[in] mask   the bitset mask to be tested.
+ * @param[in] flags  the flags to check in the mask. May contain one or more
+ * bits to set.
+ *
+ * @return \b true if the flags are set in mask; otherwise \b false;
+ */
+template <typename T,
+          typename std::enable_if<asap::disjunction<
+              std::is_arithmetic<T>, std::is_enum<T>>::value>::type * = nullptr>
+bool FlagTest(T mask, T flags) {
+  return (mask & flags) == flags;
 }
 
 }  // namespace asap
