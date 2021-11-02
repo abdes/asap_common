@@ -5,18 +5,17 @@
 
 #include <catch2/catch.hpp>
 
-#include <asap/asap-features.h>
+#include <hedley/hedley.h>
 #include <common/traits/logical.h>
 
 using asap::conjunction;
 using asap::disjunction;
 using asap::negation;
 
-#if ASAP_COMPILER_IS_GNU
-#pragma GCC diagnostic push
+HEDLEY_DIAGNOSTIC_PUSH
+#if HEDLEY_GNUC_VERSION
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#elif ASAP_COMPILER_IS_Clang || ASAP_COMPILER_IS_AppleClang
-#pragma clang diagnostic push
+#elif defined(__clang__)
 #pragma clang diagnostic ignored "-Wunused-local-typedef"
 #endif
 
@@ -66,8 +65,4 @@ TEST_CASE("Value", "[common][traits][logical]") {
   REQUIRE(!disjunction<std::false_type, std::false_type, std::false_type>{});
 }
 
-#if ASAP_COMPILER_IS_GNU
-#pragma GCC diagnostic pop
-#elif ASAP_COMPILER_IS_Clang || ASAP_COMPILER_IS_AppleClang
-#pragma clang diagnostic pop
-#endif
+HEDLEY_DIAGNOSTIC_POP

@@ -16,4 +16,5 @@ API reference
    Logging <api/logging>
    Unicode support <api/unicode>
    Mask/Flags manipulation <api/flags>
+   Hedley <api/hedley>
 

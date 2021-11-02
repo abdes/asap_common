@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <asap/asap-features.h>
+#include <hedley/hedley.h>
 #include <common/assert.h>
 #include <common/config.h>
 #include <common/platform.h>
@@ -23,7 +23,7 @@
 // have issues and returns 1 for 'defined( __has_include )', while
 // '__has_include' is actually not supported:
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63662
-#if defined(__has_include) && (!ASAP_COMPILER_IS_GNU || (__GNUC__ + 0) >= 5)
+#if defined(__has_include) && (!HEDLEY_GNUC_VERSION || (__GNUC__ + 0) >= 5)
 #if __has_include(<cxxabi.h>)
 #define ASAP_HAS_CXXABI_H
 #endif
@@ -242,7 +242,7 @@ void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
 // parameter as a format string inside your function.
 //
 // see: https://clang.llvm.org/docs/AttributeReference.html#format
-#if ASAP_COMPILER_IS_GNU || ASAP_COMPILER_IS_Clang
+#if HEDLEY_HAS_ATTRIBUTE(format)
 #define ASAP_FORMAT(fmt, ellipsis) \
   __attribute__((__format__(__printf__, fmt, ellipsis)))
 #else
@@ -262,8 +262,8 @@ void assert_print(char const* fmt, ...) {
 
 // we deliberately don't want asserts to be marked as no-return, since that
 // would trigger warnings in debug builds of any code coming after the assert
-#if ASAP_COMPILER_IS_Clang
-#pragma clang diagnostic push
+#if HEDLEY_HAS_WARNING("-Wmissing-noreturn")
+HEDLEY_DIAGNOSTIC_PUSH 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #endif
 
@@ -297,8 +297,8 @@ void assert_fail(char const* expr, int line, char const* file,
 }
 }  // namespace asap
 
-#if ASAP_COMPILER_IS_Clang
-#pragma clang diagnostic pop
+#if HEDLEY_HAS_WARNING("-Wmissing-noreturn")
+HEDLEY_DIAGNOSTIC_POP
 #endif
 
 #elif !ASAP_USE_ASSERTS

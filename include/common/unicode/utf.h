@@ -10,7 +10,7 @@
 #include <cstddef>  // for std::size_t
 #include <cstdint>  // for int types
 
-#include <asap/asap-features.h>
+#include <hedley/hedley.h>
 
 /// Namespace holding the API for unicode operations relying entirely on UTF-8
 /// as the internal storage format for text (described in detail at
@@ -21,7 +21,7 @@ namespace nowide {
 namespace utf {
 
 /// \cond INTERNAL
-#if ASAP_COMPILER_IS_GNU
+#if HEDLEY_GCC_VERSION
 #define NOWIDE_LIKELY(x) __builtin_expect((x), 1)
 #define NOWIDE_UNLIKELY(x) __builtin_expect((x), 0)
 #else

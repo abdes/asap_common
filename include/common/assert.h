@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <hedley/hedley.h>
+
 #include <common/asap_common_api.h>
 #include <common/config.h>
 
@@ -50,17 +52,11 @@
  * }
  * @endcode
  */
-// clang-format off
-#if ASAP_COMPILER_IS_GNU
-# define ASAP_UNREACHABLE() __builtin_unreachable()
-#else
-# define ASAP_UNREACHABLE() std::abort()
-#endif
-// clang-format on
+#define ASAP_UNREACHABLE() HEDLEY_UNREACHABLE()
 
 /// @cond (INTERNAL_DETAIL)
 // clang-format off
-#if ASAP_COMPILER_IS_GNU
+#if HEDLEY_GCC_VERSION
 # define ASAP_FUNCTION __PRETTY_FUNCTION__
 #else
 # define ASAP_FUNCTION __FUNCTION__
@@ -109,7 +105,7 @@ void ASAP_COMMON_API assert_fail(const char *expr, int line, char const *file,
 // This is to disable the warning of conditional expressions being constant
 // in msvc.
 // clang-format off
-#if ASAP_COMPILER_IS_MSVC
+#if HEDLEY_MSVC_VERSION
 #  define ASAP_WHILE_0  \
        __pragma( warning(push) ) \
        __pragma( warning(disable:4127) ) \

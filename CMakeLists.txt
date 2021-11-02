@@ -78,6 +78,8 @@ set(public_headers
   "include/common/unicode/encoding_errors.h"
   "include/common/unicode/encoding_utf.h"
   "include/common/unicode/utf.h"
+  # hedley module
+  "include/hedley/hedley.h"
   )
 
 set(sources

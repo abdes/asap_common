@@ -1,0 +1,3 @@
+[submodule "include/hedley"]
+	path = include/hedley
+	url = https://github.com/nemequ/hedley
