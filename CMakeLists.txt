@@ -1,10 +1,12 @@
+# ~~~
 #        Copyright The Authors 2018.
 #    Distributed under the 3-Clause BSD License.
 #    (See accompanying file LICENSE or copy at
 #   https://opensource.org/licenses/BSD-3-Clause)
-
+# ~~~
 
 # Meta information about the project
+# cmake-format: off
 set(META_MODULE_NAME                "common")
 set(META_MODULE_DESCRIPTION         "Common functionality for asap based projects")
 set(META_MODULE_GITHUB_REPO         "asap_common")
@@ -14,8 +16,8 @@ set(META_MODULE_VERSION_PATCH       "1")
 set(META_MODULE_VERSION_REVISION    "${MODULE_GIT_REV}")
 set(META_MODULE_VERSION             "${META_MODULE_VERSION_MAJOR}.${META_MODULE_VERSION_MINOR}.${META_MODULE_VERSION_PATCH}")
 set(META_MODULE_NAME_VERSION        "${META_MODULE_PROJECT_NAME} v${META_MODULE_VERSION}")
+# cmake-format: on
 message("=> [module: common ${META_MODULE_VERSION}]")
-
 
 # ------------------------------------------------------------------------------
 # Configuration
@@ -24,28 +26,32 @@ message("=> [module: common ${META_MODULE_VERSION}]")
 set(IDE_FOLDER "Libraries")
 
 # Project options
-option(ASAP_USE_ASSERTS         "Enable ASSERT macros."                            ON)
-option(ASAP_USE_SYSTEM_ASSERTS  "Use system assert() to implement ASSERT macros."  OFF)
+option(ASAP_USE_ASSERTS "Enable ASSERT macros." ON)
+option(ASAP_USE_SYSTEM_ASSERTS
+       "Use system assert() to implement ASSERT macros." OFF)
 
 # This module's specific Environment detection
 include(CheckIncludeFileCXX)
 check_include_file_cxx("execinfo.h" ASAP_HAVE_EXECINFO_H)
 include(CheckCXXSourceCompiles)
-check_cxx_source_compiles("
+check_cxx_source_compiles(
+  "
   #define _POSIX_C_SOURCE 200112L
   #include <unistd.h>
   #if !defined(_POSIX_VERSION) || (_POSIX_VERSION < 200112L)
   posix_200112L_unsupported
   #endif
   int main(int, char**) {
-  }" ASAP_POSIX FAIL_REGEX "posix_200112L_unsupported")
+  }"
+  ASAP_POSIX
+  FAIL_REGEX
+  "posix_200112L_unsupported")
 
 # ------------------------------------------------------------------------------
 # External dependencies
 # ------------------------------------------------------------------------------
 
 # find_package(THIRDPARTY REQUIRED)
-
 
 # ==============================================================================
 # Build instructions
@@ -57,7 +63,6 @@ set(target_export common)
 
 # Exit here if required dependencies are not met
 
-
 # ------------------------------------------------------------------------------
 # Sources
 # ------------------------------------------------------------------------------
@@ -66,36 +71,22 @@ set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
 set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(public_headers
-  "include/common/platform.h"
-  "include/common/assert.h"
-  "include/common/non_copiable.h"
-  "include/common/logging.h"
-  "include/common/flag_ops.h"
-  # traits module
-  "include/common/traits/logical.h"
-  # unicode module
-  "include/common/unicode/convert.h"
-  "include/common/unicode/encoding_errors.h"
-  "include/common/unicode/encoding_utf.h"
-  "include/common/unicode/utf.h"
-  # hedley module
-  "include/hedley/hedley.h"
-  )
+    "include/common/platform.h"
+    "include/common/assert.h"
+    "include/common/non_copiable.h"
+    "include/common/logging.h"
+    "include/common/flag_ops.h"
+    # traits module
+    "include/common/traits/logical.h"
+    # unicode module
+    "include/common/unicode/convert.h"
+    "include/common/unicode/encoding_errors.h"
+    "include/common/unicode/encoding_utf.h"
+    "include/common/unicode/utf.h"
+    # hedley module
+    "include/hedley/hedley.h")
 
-set(sources
-  "src/assert.cpp"
-  "src/logging.cpp"
-  ${public_headers}
-  )
-
-# Group source files
-set(header_group "Header Files (API)")
-set(source_group "Source Files")
-source_group_by_path(${include_path} "\\\\.h$|\\\\.hpp$"
-  ${header_group} ${public_headers})
-source_group_by_path(${source_path} "\\\\.cpp$|\\\\.c$|\\\\.h$|\\\\.hpp$"
-  ${source_group} ${sources})
-
+set(sources "src/assert.cpp" "src/logging.cpp" ${public_headers})
 
 # ------------------------------------------------------------------------------
 # Include dirs
@@ -116,9 +107,9 @@ set(private_compile_options)
 # ------------------------------------------------------------------------------
 
 set(public_libraries spdlog::spdlog)
-if (WIN32)
+if(WIN32)
   list(APPEND public_libraries dbghelp)
-endif (WIN32)
+endif(WIN32)
 
 # ------------------------------------------------------------------------------
 # Create targets
@@ -140,15 +131,13 @@ asap_library(
   PRIVATE_COMPILE_DEFINITIONS
   ${private_compile_definitions}
   PRIVATE_COMPILE_OPTIONS
-  ${private_compile_options}
-)
-
+  ${private_compile_options})
 
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
 
-if (OPTION_BUILD_TESTS)
+if(OPTION_BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
@@ -157,10 +146,8 @@ endif()
 # ------------------------------------------------------------------------------
 
 # Generate config-header
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/common/config.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/include/common/config.h
-)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/include/common/config.h)
 
 # ------------------------------------------------------------------------------
 # Code analysis
@@ -169,14 +156,14 @@ configure_file(
 enable_cppcheck()
 tidy_target(${target})
 
-
 # ------------------------------------------------------------------------------
 # API Documentation
 # ------------------------------------------------------------------------------
 
-configure_doxyfile(${target}
+configure_doxyfile(
+  ${target}
   "\"Common Module\""
-  "\"A module to provide the absolute minimum required building blocks for the other modules such as portability, logging, assertions, etc...\""
+  "\"Provides common basic building blocks such as portability, logging, assertions, etc.\""
   "${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_doxygen_target(${target})
@@ -187,6 +174,5 @@ if(SPHINX_FOUND)
   install(
     DIRECTORY ${SPHINX_BUILD_DIR}/${target}
     DESTINATION ${INSTALL_DOC}
-    COMPONENT docs
-  )
+    COMPONENT docs)
 endif()

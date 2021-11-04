@@ -1,7 +1,9 @@
+# ~~~
 #        Copyright The Authors 2018.
 #    Distributed under the 3-Clause BSD License.
 #    (See accompanying file LICENSE or copy at
 #   https://opensource.org/licenses/BSD-3-Clause)
+# ~~~
 
 # ------------------------------------------------------------------------------
 # Configuration
@@ -15,7 +17,6 @@ set(IDE_FOLDER "Tests")
 
 # find_package(THIRDPARTY REQUIRED)
 
-
 # ==============================================================================
 # Build instructions
 # ==============================================================================
@@ -24,7 +25,6 @@ set(IDE_FOLDER "Tests")
 set(target asap_common_test)
 
 # Exit here if required dependencies are not met
-
 
 # ------------------------------------------------------------------------------
 # Sources
@@ -36,23 +36,13 @@ set(source_path "${CMAKE_CURRENT_SOURCE_DIR}")
 set(public_headers)
 
 set(sources
-  "assert_test.cpp"
-  "logging_test.cpp"
-  "traits_logical_test.cpp"
-  "unicode_convert_test.cpp"
-  "flag_ops_test.cpp"
-  "main.cpp"
-  ${public_headers}
-)
-
-# Group source files
-set(header_group "Header Files (API)")
-set(source_group "Source Files")
-source_group_by_path(${include_path} "\\\\.h$|\\\\.hpp$"
-  ${header_group} ${public_headers})
-source_group_by_path(${source_path} "\\\\.cpp$|\\\\.c$|\\\\.h$|\\\\.hpp$"
-  ${source_group} ${sources})
-
+    "assert_test.cpp"
+    "logging_test.cpp"
+    "traits_logical_test.cpp"
+    "unicode_convert_test.cpp"
+    "flag_ops_test.cpp"
+    "main.cpp"
+    ${public_headers})
 
 # ------------------------------------------------------------------------------
 # Include dirs
@@ -89,5 +79,4 @@ asap_test_executable(
   COMPILE_DEFINITIONS
   ${compile_definitions}
   COMPILE_OPTIONS
-  ${compile_options}
-)
+  ${compile_options})
