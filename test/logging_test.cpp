@@ -3,18 +3,27 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <catch2/catch.hpp>
-
 #include <common/logging.h>
 
+#include <catch2/catch.hpp>
+#include <iostream>
 #include <mutex>
 #include <sstream>
-#include <iostream>
 
-template<typename Mutex>
+// This mess is created because of the way spdlog is organizing its source code
+// based on header only builds vs library builds. The issue is that spdlog
+// places the template definitions in a separate file and explicitly
+// instantiates them, so we have no problem at link, but we do have a problem
+// with clang (rightfully) complaining that the template definitions are not
+// available when the template needs to be instantiated here.
+HEDLEY_DIAGNOSTIC_PUSH
+#if defined(__clang__)
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Wundefined-func-template")
+#endif
+
+template <typename Mutex>
 class TestSink : public spdlog::sinks::base_sink<Mutex> {
  public:
-
   void Reset() {
     out_.clear();
     called_ = 0;
@@ -26,13 +35,12 @@ class TestSink : public spdlog::sinks::base_sink<Mutex> {
  protected:
   void sink_it_(const spdlog::details::log_msg &msg) override {
     ++called_;
-    out_.write(msg.payload.data(), msg.payload.size());
+    out_.write(msg.payload.data(),
+               static_cast<std::streamsize>(msg.payload.size()));
     out_.write("\n", 1);
   }
 
-  void flush_() override {
-    out_.flush();
-  }
+  void flush_() override { out_.flush(); }
 };
 
 using TestSink_mt = TestSink<std::mutex>;
@@ -41,14 +49,13 @@ using TestSink_st = TestSink<spdlog::details::null_mutex>;
 namespace asap {
 namespace logging {
 
-
 class Foo : Loggable<Foo> {
  public:
   Foo() { ASLOG(trace, "Foo constructor"); }
 
-  static const char * LOGGER_NAME;
+  static const char *LOGGER_NAME;
 };
-const char * Foo::LOGGER_NAME = "foo";
+const char *Foo::LOGGER_NAME = "foo";
 
 TEST_CASE("TestLoggable", "[common][logging]") {
   auto *test_sink = new TestSink_mt();
@@ -71,8 +78,7 @@ TEST_CASE("TestMultipleThreads", "[common][logging]") {
   Registry::PushSink(test_sink_ptr);
 
   std::thread th1([]() {
-    for (auto ii = 0; ii < 5; ++ii)
-      ASLOG_MISC(debug, "THREAD_1: {}", ii);
+    for (auto ii = 0; ii < 5; ++ii) ASLOG_MISC(debug, "THREAD_1: {}", ii);
   });
   std::thread th2([]() {
     auto &test_logger = Registry::GetLogger("testing");
@@ -89,11 +95,13 @@ TEST_CASE("TestMultipleThreads", "[common][logging]") {
   auto expected_seq_th2 = 0;
   while (std::getline(msg_reader, line)) {
     if (line.find("THREAD_1") != std::string::npos) {
-      REQUIRE(line.find(std::string("THREAD_1: ") + std::to_string(expected_seq_th1)) != std::string::npos);
+      REQUIRE(line.find(std::string("THREAD_1: ") +
+                        std::to_string(expected_seq_th1)) != std::string::npos);
       ++expected_seq_th1;
     }
     if (line.find("THREAD_2") != std::string::npos) {
-      REQUIRE(line.find(std::string("THREAD_2: ") + std::to_string(expected_seq_th2)) != std::string::npos);
+      REQUIRE(line.find(std::string("THREAD_2: ") +
+                        std::to_string(expected_seq_th2)) != std::string::npos);
       ++expected_seq_th2;
     }
   }
@@ -143,14 +151,15 @@ class MockSink : public spdlog::sinks::sink {
  public:
   void log(const spdlog::details::log_msg &) override { ++called_; }
   void flush() override {}
-  void set_pattern(const std::string &/*pattern*/) override {};
-  void set_formatter(std::unique_ptr<spdlog::formatter> /*sink_formatter*/) override {};
+  void set_pattern(const std::string & /*pattern*/) override {}
+  void set_formatter(
+      std::unique_ptr<spdlog::formatter> /*sink_formatter*/) override {}
 
   void Reset() { called_ = 0; }
 
   int called_{0};
 };
-}
+}  // namespace
 
 TEST_CASE("TestLogPushSink", "[common][logging]") {
   auto *first_mock = new MockSink();
@@ -197,3 +206,5 @@ TEST_CASE("TestLogPushSink", "[common][logging]") {
 
 }  // namespace logging
 }  // namespace asap
+
+HEDLEY_DIAGNOSTIC_PUSH

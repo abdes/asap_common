@@ -3,20 +3,25 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
+#include <common/assert.h>
 #include <common/logging.h>
 
 #include <iomanip>  // std::setw
 #include <sstream>  // std::ostringstream
 
-#include <common/assert.h>
-
-#if defined _WIN32 && !defined(__cplusplus_winrt)
-# include <spdlog/sinks/wincolor_sink.h>
-#else
-# include <spdlog/sinks/ansicolor_sink.h>
+// spdlog causes a bunch of compiler warnings we can't do anything about except
+// temporarily disabling them
+HEDLEY_DIAGNOSTIC_PUSH
+#if defined(__clang__)
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Weverything")
 #endif
 
-
+#if defined _WIN32 && !defined(__cplusplus_winrt)
+#include <spdlog/sinks/wincolor_sink.h>
+#else
+#include <spdlog/sinks/ansicolor_sink.h>
+#endif
+HEDLEY_DIAGNOSTIC_POP
 
 namespace asap {
 namespace logging {
@@ -34,7 +39,6 @@ std::mutex Registry::sinks_mutex_;
 // Synchronization mutex for the loggers collection.
 std::recursive_mutex Registry::loggers_mutex_;
 
-
 // ---------------------------------------------------------------------------
 // Logger
 // ---------------------------------------------------------------------------
@@ -47,6 +51,8 @@ Logger::Logger(std::string name, spdlog::sink_ptr sink) {
   logger_->flush_on(spdlog::level::critical);
 }
 
+Logger::~Logger() {}
+
 spdlog::logger &Registry::GetLogger(std::string const &name) {
   std::lock_guard<std::recursive_mutex> lock(loggers_mutex_);
   auto &loggers = Loggers();
@@ -57,6 +63,26 @@ spdlog::logger &Registry::GetLogger(std::string const &name) {
   }
   return *(search->second.logger_);
 }
+
+// ---------------------------------------------------------------------------
+// DelegatingSink
+// ---------------------------------------------------------------------------
+
+// This mess is created because of the way spdlog is organizing its source code
+// based on header only builds vs library builds. The issue is that spdlog
+// places the template definitions in a separate file and explicitly
+// instantiates them, so we have no problem at link, but we do have a problem
+// with clang (rightfully) complaining that the template definitions are not
+// available when the template needs to be instantiated here.
+HEDLEY_DIAGNOSTIC_PUSH
+#if defined(__clang__)
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Wundefined-func-template")
+#endif
+DelegatingSink::DelegatingSink(spdlog::sink_ptr delegate)
+    : sink_delegate_(std::move(delegate)) {}
+HEDLEY_DIAGNOSTIC_POP
+
+DelegatingSink::~DelegatingSink() {}
 
 // ---------------------------------------------------------------------------
 // Registry
@@ -161,7 +187,7 @@ std::string FormatFileAndLine(char const *file, char const *line) {
        << std::setw(5) << std::setfill('0') << std::right << line << "] ";
   return ostr.str();
 }
-#endif // NDEBUG
+#endif  // NDEBUG
 
 }  // namespace logging
 }  // namespace asap

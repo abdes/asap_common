@@ -5,16 +5,27 @@
 
 #pragma once
 
-#include <stack>   // for stacking sinks
-#include <string>  // for std::string
-#include <unordered_map> // for the collection of loggers
-#include <thread>  // for std::mutex
-
 #include <common/asap_common_api.h>
 #include <common/non_copiable.h>
+#include <hedley/hedley.h>
 
+#include <stack>          // for stacking sinks
+#include <string>         // for std::string
+#include <thread>         // for std::mutex
+#include <unordered_map>  // for the collection of loggers
+
+// spdlog causes a bunch of compiler warnings we can't do anything about except
+// temporarily disabling them
+HEDLEY_DIAGNOSTIC_PUSH
+#if defined(HEDLEY_GCC_VERSION)
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Wswitch-default")
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Wstrict-overflow")
+#elif defined(__clang__)
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Weverything")
+#endif
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
+HEDLEY_DIAGNOSTIC_POP
 
 /// Top level namespace.
 namespace asap {
@@ -51,16 +62,16 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
   /// Move constructor
   Logger(Logger &&other) noexcept
       : logger_(std::move(other.logger_)),
-        logger_mutex_(std::move(other.logger_mutex_)){};
+        logger_mutex_(std::move(other.logger_mutex_)) {}
 
   /// Move assignment
   Logger &operator=(Logger &&other) noexcept {
     Logger(std::move(other)).swap(*this);
     return *this;
-  };
+  }
 
   /// Default trivial destructor
-  ~Logger() override = default;
+  ~Logger() override;
 
   /*!
    * @brief Implementation of the swap operation.
@@ -155,8 +166,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
    *
    * @param [in] delegate the sink to which logging calls will be delegated.
    */
-  explicit DelegatingSink(spdlog::sink_ptr delegate)
-      : sink_delegate_(std::move(delegate)) {}
+  explicit DelegatingSink(spdlog::sink_ptr delegate);
 
   /// Move constructor
   DelegatingSink(DelegatingSink &&) = delete;
@@ -167,16 +177,19 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
   /// Default trivial destructor
   DelegatingSink() = default;
 
+  /// Default trivial destructor
+  ~DelegatingSink() override;
+
   /*!
    * @brief Use the given sink as a new delegate and return the old one.
    *
-   * @param sink the new delegate.
+   * @param new_sink the new delegate.
    * @return the previously used delegate.
    */
-  spdlog::sink_ptr SwapSink(spdlog::sink_ptr sink) {
+  spdlog::sink_ptr SwapSink(spdlog::sink_ptr new_sink) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto tmp = sink_delegate_;
-    sink_delegate_ = std::move(sink);
+    sink_delegate_ = std::move(new_sink);
     return tmp;
   }
 
@@ -377,18 +390,19 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 // executing expressions computing log contents when they would be suppressed.
 // The same filtering will also occur in spdlog::logger.
 
-#define _SELECT(PREFIX, _13, _12, _11, _10, _9, _8, _7, _6, _5, _4, _3, _2, \
-                _1, SUFFIX, ...)                                            \
+#define INTERNAL_SELECT(PREFIX, _13, _12, _11, _10, _9, _8, _7, _6, _5, _4, \
+                        _3, _2, _1, SUFFIX, ...)                            \
   PREFIX##_##SUFFIX
-#define _SELECT_IMPL(args) _SELECT args
-#define AS_DO_LOG(...)                                                       \
-  _SELECT_IMPL((_ASLOG, __VA_ARGS__, N, N, N, N, N, N, N, N, N, N, 3, 2, 1)) \
+#define INTERNAL_SELECT_IMPL(args) INTERNAL_SELECT args
+#define AS_DO_LOG(...)                                                      \
+  INTERNAL_SELECT_IMPL(                                                     \
+      (INTERNAL_ASLOG, __VA_ARGS__, N, N, N, N, N, N, N, N, N, N, 3, 2, 1)) \
   (__VA_ARGS__)
 
-#define _ASLOG_1(LOGGER) LOGGER.debug("no logger level - no message")
-#define _ASLOG_2(LOGGER, LEVEL) LOGGER.LEVEL("no message")
-#define _ASLOG_3(LOGGER, LEVEL, MSG) LOGGER.LEVEL("{}" MSG, LOG_PREFIX)
-#define _ASLOG_N(LOGGER, LEVEL, MSG, ...) \
+#define INTERNAL_ASLOG_1(LOGGER) LOGGER.debug("no logger level - no message")
+#define INTERNAL_ASLOG_2(LOGGER, LEVEL) LOGGER.LEVEL("no message")
+#define INTERNAL_ASLOG_3(LOGGER, LEVEL, MSG) LOGGER.LEVEL("{}" MSG, LOG_PREFIX)
+#define INTERNAL_ASLOG_N(LOGGER, LEVEL, MSG, ...) \
   LOGGER.LEVEL("{}" MSG, LOG_PREFIX, __VA_ARGS__)
 
 #ifndef NDEBUG
@@ -407,8 +421,7 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
   } while (0)
 #endif  // NDEBUG
 
-#define GET_MISC_LOGGER() \
-  asap::logging::Registry::GetLogger("misc")
+#define GET_MISC_LOGGER() asap::logging::Registry::GetLogger("misc")
 
 #endif  // DOXYGEN_DOCUMENTATION_BUILD
 

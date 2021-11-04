@@ -3,10 +3,10 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <catch2/catch.hpp>
-
-#include <hedley/hedley.h>
 #include <common/traits/logical.h>
+#include <hedley/hedley.h>
+
+#include <catch2/catch.hpp>
 
 using asap::conjunction;
 using asap::disjunction;

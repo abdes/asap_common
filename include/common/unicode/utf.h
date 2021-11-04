@@ -7,10 +7,17 @@
 //
 #pragma once
 
+#include <hedley/hedley.h>
+
 #include <cstddef>  // for std::size_t
 #include <cstdint>  // for int types
 
-#include <hedley/hedley.h>
+// spdlog causes a bunch of compiler warnings we can't do anything about except
+// temporarily disabling them
+HEDLEY_DIAGNOSTIC_PUSH
+#if defined(HEDLEY_GCC_VERSION)
+HEDLEY_PRAGMA(GCC diagnostic ignored "-Wsign-conversion")
+#endif
 
 /// Namespace holding the API for unicode operations relying entirely on UTF-8
 /// as the internal storage format for text (described in detail at
@@ -21,7 +28,7 @@ namespace nowide {
 namespace utf {
 
 /// \cond INTERNAL
-#if HEDLEY_GCC_VERSION
+#if defined(HEDLEY_GCC_VERSION)
 #define NOWIDE_LIKELY(x) __builtin_expect((x), 1)
 #define NOWIDE_UNLIKELY(x) __builtin_expect((x), 0)
 #else
@@ -137,7 +144,7 @@ struct utf_traits<CharType, 1> {
   typedef CharType char_type;
 
   static int trail_length(char_type ci) {
-    unsigned char c = ci;
+    unsigned char c = static_cast<unsigned char>(ci);
     if (c < 128) return 0;
     if (NOWIDE_UNLIKELY(c < 194)) return -1;
     if (c < 224) return 1;
@@ -161,7 +168,7 @@ struct utf_traits<CharType, 1> {
   }
 
   static bool is_trail(char_type ci) {
-    unsigned char c = ci;
+    unsigned char c = static_cast<unsigned char>(ci);
     return (c & 0xC0) == 0x80;
   }
 
@@ -171,7 +178,7 @@ struct utf_traits<CharType, 1> {
   static code_point decode(Iterator &p, Iterator e) {
     if (NOWIDE_UNLIKELY(p == e)) return incomplete;
 
-    unsigned char lead = *p++;
+    auto lead = *p++;
 
     // First byte is fully validated here
     int trail_size = trail_length(lead);
@@ -182,30 +189,39 @@ struct utf_traits<CharType, 1> {
     // Ok as only ASCII may be of size = 0
     // also optimize for ASCII text
     //
-    if (trail_size == 0) return lead;
+    if (trail_size == 0) return static_cast<code_point>(lead);
 
     code_point c = lead & ((1 << (6 - trail_size)) - 1);
 
     // Read the rest
-    unsigned char tmp;
+    char tmp;
     switch (trail_size) {
       case 3:
         if (NOWIDE_UNLIKELY(p == e)) return incomplete;
         tmp = *p++;
         if (!is_trail(tmp)) return illegal;
         c = (c << 6) | (tmp & 0x3F);
+#if defined(__clang__)
+        [[clang::fallthrough]];
+#endif  // __clang__
         /* FALLTHRU */
       case 2:
         if (NOWIDE_UNLIKELY(p == e)) return incomplete;
         tmp = *p++;
         if (!is_trail(tmp)) return illegal;
         c = (c << 6) | (tmp & 0x3F);
+#if defined(__clang__)
+        [[clang::fallthrough]];
+#endif  // __clang__
         /* FALLTHRU */
       case 1:
         if (NOWIDE_UNLIKELY(p == e)) return incomplete;
         tmp = *p++;
         if (!is_trail(tmp)) return illegal;
         c = (c << 6) | (tmp & 0x3F);
+        break;
+      default:
+        HEDLEY_UNREACHABLE();
     }
 
     // Check code point validity: no surrogates and
@@ -352,7 +368,7 @@ struct utf_traits<CharType, 4> {
   template <typename It>
   static code_point decode(It &current, It last) {
     if (NOWIDE_UNLIKELY(current == last)) return nowide::utf::incomplete;
-    code_point c = *current++;
+    code_point c = static_cast<code_point>(*current++);
     if (NOWIDE_UNLIKELY(!is_valid_codepoint(c))) return nowide::utf::illegal;
     return c;
   }
@@ -371,3 +387,5 @@ struct utf_traits<CharType, 4> {
 }  // namespace utf
 
 }  // namespace nowide
+
+HEDLEY_DIAGNOSTIC_POP

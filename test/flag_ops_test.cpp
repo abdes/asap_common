@@ -3,9 +3,9 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <catch2/catch.hpp>
-
 #include <common/flag_ops.h>
+
+#include <catch2/catch.hpp>
 
 namespace asap {
 

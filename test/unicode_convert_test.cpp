@@ -3,9 +3,9 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <catch2/catch.hpp>
-
 #include <common/unicode/convert.h>
+
+#include <catch2/catch.hpp>
 
 TEST_CASE("Unicode / nowide / widen", "[common][unicode][nowide]") {
   const std::string hello = "\xd7\xa9\xd7\x9c\xd7\x95\xd7\x9d";
@@ -19,8 +19,8 @@ TEST_CASE("Unicode / nowide / widen", "[common][unicode][nowide]") {
 
   REQUIRE(buf == whello);
   REQUIRE(buf[5] == 1);
-  REQUIRE(nowide::widen(buf, 4, b, e) == 0);
-  REQUIRE(nowide::widen(buf, 5, b, e - 1) == 0);
+  REQUIRE(nowide::widen(buf, 4, b, e) == nullptr);
+  REQUIRE(nowide::widen(buf, 5, b, e - 1) == nullptr);
   REQUIRE(nowide::widen(buf, 5, b, e - 2) == buf);
 
   REQUIRE(nowide::widen(buf, 5, b, b) == buf);
@@ -32,12 +32,12 @@ TEST_CASE("Unicode / nowide / widen", "[common][unicode][nowide]") {
 
   b = "\xFF\xFF";
   e = b + 2;
-  REQUIRE(nowide::widen(buf, 5, b, e) == 0);
+  REQUIRE(nowide::widen(buf, 5, b, e) == nullptr);
 
   b = "\xd7\xa9\xFF";
   e = b + 3;
-  REQUIRE(nowide::widen(buf, 5, b, e) == 0);
-  REQUIRE(nowide::widen(buf, 5, b, b + 1) == 0);
+  REQUIRE(nowide::widen(buf, 5, b, e) == nullptr);
+  REQUIRE(nowide::widen(buf, 5, b, b + 1) == nullptr);
 }
 
 TEST_CASE("Unicode / nowide / narrow", "[common][unicode][nowide]") {
@@ -51,7 +51,7 @@ TEST_CASE("Unicode / nowide / narrow", "[common][unicode][nowide]") {
   REQUIRE(nowide::narrow(buf, 9, b, e) == buf);
   REQUIRE(buf == hello);
   REQUIRE(buf[9] == 1);
-  REQUIRE(nowide::narrow(buf, 8, b, e) == 0);
+  REQUIRE(nowide::narrow(buf, 8, b, e) == nullptr);
   REQUIRE(nowide::narrow(buf, 7, b, e - 1) == buf);
   REQUIRE(buf == hello.substr(0, 6));
 }

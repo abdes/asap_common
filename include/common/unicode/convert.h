@@ -7,9 +7,9 @@
 //
 #pragma once
 
-#include <string>
-
 #include <common/unicode/encoding_utf.h>
+
+#include <string>
 
 namespace nowide {
 ///

@@ -9,6 +9,11 @@
 
 namespace asap {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+#endif  // __clang__
+
 /*!
  * NonCopiable is intended to be used as a \b private base class. It has deleted
  * (C++11) copy constructor and copy assignment operator and can't be copied
@@ -33,5 +38,9 @@ class ASAP_COMMON_API NonCopiable {
   /// Destructor (default)
   virtual ~NonCopiable() = default;
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif  // __clang__
 
 }  // namespace asap

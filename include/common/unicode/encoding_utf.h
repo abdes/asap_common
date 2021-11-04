@@ -7,11 +7,11 @@
 //
 #pragma once
 
-#include <iterator>
-#include <string>
-
 #include <common/unicode/encoding_errors.h>
 #include <common/unicode/utf.h>
+
+#include <iterator>
+#include <string>
 
 namespace nowide {
 
@@ -26,7 +26,13 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
     CharIn const *begin, CharIn const *end,
     const Allocator &alloc = Allocator()) {
   std::basic_string<CharOut, Traits, Allocator> result(alloc);
-  result.reserve(end - begin);
+  auto range_size = end - begin;
+  if (range_size > 0) {
+    result.reserve(
+        static_cast<
+            typename std::basic_string<CharOut, Traits, Allocator>::size_type>(
+            range_size));
+  }
   typedef std::back_insert_iterator<
       std::basic_string<CharOut, Traits, Allocator>>
       inserter_type;

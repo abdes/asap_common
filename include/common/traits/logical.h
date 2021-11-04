@@ -21,8 +21,8 @@ template <class B1, class... Bi>
 struct conjunction<B1, Bi...>
     : std::conditional<B1::value, conjunction<Bi...>, B1>::type {};
 
-/// Forms the logical disjunction of the type traits ..., effectively 
-/// performing a logical OR on the sequence of traits. 
+/// Forms the logical disjunction of the type traits ..., effectively
+/// performing a logical OR on the sequence of traits.
 template <class...>
 struct disjunction : std::false_type {};
 

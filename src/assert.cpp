@@ -3,10 +3,10 @@
 //    (See accompanying file LICENSE or copy at
 //   https://opensource.org/licenses/BSD-3-Clause)
 
-#include <hedley/hedley.h>
 #include <common/assert.h>
 #include <common/config.h>
 #include <common/platform.h>
+#include <hedley/hedley.h>
 
 #if ASAP_USE_ASSERTS
 
@@ -68,7 +68,7 @@ class scoped_demangled_name {
 inline char const* demangle_alloc(char const* name) noexcept {
   int status = 0;
   std::size_t size = 0;
-  return abi::__cxa_demangle(name, NULL, &size, &status);
+  return abi::__cxa_demangle(name, nullptr, &size, &status);
 }
 
 inline void demangle_free(char const* name) noexcept {
@@ -95,7 +95,7 @@ inline std::string demangle(char const* name) { return name; }
 #if ASAP_USE_EXECINFO
 #include <execinfo.h>
 
-namespace asap {
+namespace {
 void print_backtrace(char* out, int len, int max_depth, void*) {
   void* stack[50];
   int size = ::backtrace(stack, 50);
@@ -111,7 +111,7 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 
   ::free(symbols);
 }
-}  // namespace asap
+}  // namespace
 
 #elif defined(ASAP_WINDOWS)
 
@@ -122,7 +122,7 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
 #include "dbghelp.h"
 // clang-form on
 
-namespace asap {
+namespace {
 
 void print_backtrace(char* out, int len, int max_depth, void* ctx) {
   // all calls to DbgHlp.dll are thread-unsafe. i.e. they all need to be
@@ -217,16 +217,16 @@ void print_backtrace(char* out, int len, int max_depth, void* ctx) {
     if (i == max_depth && max_depth > 0) break;
   }
 }
-}  // namespace asap
+}  // namespace
 
 #else  // EXEC_INFO
 
-namespace asap {
+namespace {
 void print_backtrace(char* out, int len, int /*max_depth*/, void* /* ctx */) {
   out[0] = 0;
   std::strncat(out, "<not supported>", std::size_t(len));
 }
-}  // namespace asap
+}  // namespace
 
 #endif  // EXEC_INFO
 
