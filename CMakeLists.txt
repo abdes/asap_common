@@ -154,7 +154,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/config.h.in
 # ------------------------------------------------------------------------------
 
 asap_configure_sanitizers(${target})
-enable_cppcheck()
 tidy_target(${target})
 
 # ------------------------------------------------------------------------------
