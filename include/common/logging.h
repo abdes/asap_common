@@ -356,7 +356,7 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
    * @return spdlog::logger& the static log instance to use for class local
    * logging.
    */
-  static spdlog::logger &__log_do_not_use_read_comment() {
+  static spdlog::logger &internal_log_do_not_use_read_comment() {
     static spdlog::logger &instance = Registry::GetLogger(T::LOGGER_NAME);
     return instance;
   }
@@ -441,7 +441,7 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 /**
  * Convenience macro to get the class logger.
  */
-#define ASLOGGER() __log_do_not_use_read_comment()
+#define ASLOGGER() internal_log_do_not_use_read_comment()
 
 /**
  * Convenience macro to log to the class logger.
