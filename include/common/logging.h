@@ -65,7 +65,7 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
         logger_mutex_(std::move(other.logger_mutex_)) {}
 
   /// Move assignment
-  Logger &operator=(Logger &&other) noexcept {
+  auto operator=(Logger &&other) noexcept -> Logger & {
     Logger(std::move(other)).swap(*this);
     return *this;
   }
@@ -85,7 +85,7 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    *
    * @return the logger name.
    */
-  const std::string &Name() const { return logger_->name(); }
+  auto Name() const -> const std::string & { return logger_->name(); }
 
   /*!
    * @brief Set the logging level for this logger (e.g. debug, warning...).
@@ -99,11 +99,13 @@ class ASAP_COMMON_API Logger : private asap::NonCopiable {
    *
    * @return This logger's logging level.
    */
-  spdlog::level::level_enum GetLevel() const { return logger_->level(); }
+  auto GetLevel() const -> spdlog::level::level_enum {
+    return logger_->level();
+  }
 
   /// Default format for all loggers.
   /// @see https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
-  static const char *DEFAULT_LOG_FORMAT;
+  static const char *const DEFAULT_LOG_FORMAT;
 
  private:
   /*!
@@ -172,7 +174,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
   DelegatingSink(DelegatingSink &&) = delete;
 
   /// Move assignment
-  DelegatingSink &operator=(DelegatingSink &&) = delete;
+  auto operator=(DelegatingSink &&) -> DelegatingSink & = delete;
 
   /// Default trivial destructor
   DelegatingSink() = default;
@@ -186,7 +188,7 @@ class DelegatingSink : public spdlog::sinks::base_sink<std::mutex>,
    * @param new_sink the new delegate.
    * @return the previously used delegate.
    */
-  spdlog::sink_ptr SwapSink(spdlog::sink_ptr new_sink) {
+  auto SwapSink(spdlog::sink_ptr new_sink) -> spdlog::sink_ptr {
     std::lock_guard<std::mutex> lock(mutex_);
     auto tmp = sink_delegate_;
     sink_delegate_ = std::move(new_sink);
@@ -287,10 +289,10 @@ class ASAP_COMMON_API Registry {
    *
    * @return The logger corresponding to the given name.
    */
-  static spdlog::logger &GetLogger(std::string const &name);
+  static auto GetLogger(std::string const &name) -> spdlog::logger &;
 
   /// API access to the collection of registered loggers.
-  static std::unordered_map<std::string, Logger> &Loggers();
+  static auto Loggers() -> std::unordered_map<std::string, Logger> &;
 
   /*!
    * @brief Use the given sink for all subsequent logging operations until a
@@ -323,21 +325,22 @@ class ASAP_COMMON_API Registry {
   // caches the static member to optimize the call.
 
   /// Internal initialization of the static collection of loggers.
-  static std::unordered_map<std::string, Logger> &predefined_loggers_();
+  static auto predefined_loggers_()
+      -> std::unordered_map<std::string, Logger> &;
   /// A synchronization object for concurrent access to the collection of
   /// loggers.
   static std::recursive_mutex loggers_mutex_;
 
   /// API access to the stack of sinks. We don't do any expensive initialization
   /// here, so no need for a second level of access.
-  static std::stack<spdlog::sink_ptr> &sinks_();
+  static auto sinks_() -> std::stack<spdlog::sink_ptr> &;
   /// A synchronization object for concurrent access to the collection of sinks.
   static std::mutex sinks_mutex_;
 
   /// API access to the delegating sink.
-  static std::shared_ptr<DelegatingSink> &delegating_sink();
+  static auto delegating_sink() -> std::shared_ptr<DelegatingSink> &;
   /// Internal initialization of the static delegating sink.
-  static DelegatingSink *delegating_sink_();
+  static auto delegating_sink_() -> DelegatingSink *;
 };
 
 // ---------------------------------------------------------------------------
@@ -356,7 +359,7 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
    * @return spdlog::logger& the static log instance to use for class local
    * logging.
    */
-  static spdlog::logger &internal_log_do_not_use_read_comment() {
+  static auto internal_log_do_not_use_read_comment() -> spdlog::logger & {
     static spdlog::logger &instance = Registry::GetLogger(T::LOGGER_NAME);
     return instance;
   }
@@ -375,8 +378,8 @@ class ASAP_COMMON_TEMPLATE_API Loggable {
 #define STRINGIZE(x) #x
 #define LINE_STRING DO_STRINGIZE(__LINE__)
 #ifndef NDEBUG
-std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
-                                              char const *line);
+auto ASAP_COMMON_API FormatFileAndLine(char const *file,
+                                              char const *line) -> std::string;
 #define LOG_PREFIX asap::logging::FormatFileAndLine(__FILE__, LINE_STRING)
 #else
 #define LOG_PREFIX " "
@@ -384,7 +387,7 @@ std::string ASAP_COMMON_API FormatFileAndLine(char const *file,
 
 #define ASLOG_COMP_LEVEL(LOGGER, LEVEL)    \
   (static_cast<spdlog::level::level_enum>( \
-       asap::logging::Logger::Level::LEVEL) >= (LOGGER.level()))
+       asap::logging::Logger::Level::LEVEL) >= ((LOGGER).level()))
 
 // Compare levels before invoking logger. This is an optimization to avoid
 // executing expressions computing log contents when they would be suppressed.

@@ -23,13 +23,19 @@ namespace nowide {
 /// invalid UTF 0 is returned, and the contend of the buffer is undefined.
 ///
 template <typename CharOut, typename CharIn>
-CharOut *basic_convert(CharOut *buffer, size_t buffer_size,
-                       CharIn const *source_begin, CharIn const *source_end) {
+auto basic_convert(CharOut *buffer, size_t buffer_size,
+                   CharIn const *source_begin, CharIn const *source_end)
+    -> CharOut * {
   CharOut *rv = buffer;
-  if (buffer_size == 0) return nullptr;
+  if (buffer_size == 0) {
+    return nullptr;
+  }
   buffer_size--;
   while (source_begin != source_end) {
-    using namespace nowide::utf;
+    using nowide::utf::code_point;
+    using nowide::utf::illegal;
+    using nowide::utf::incomplete;
+    using nowide::utf::utf_traits;
     code_point c = utf_traits<CharIn>::template decode<CharIn const *>(
         source_begin, source_end);
     if (c == illegal || c == incomplete) {
@@ -54,8 +60,10 @@ namespace details {
 // wcslen defined only in C99... So we will not use it
 //
 template <typename Char>
-Char const *basic_strend(Char const *s) {
-  while (*s) s++;
+auto basic_strend(Char const *s) -> Char const * {
+  while (*s) {
+    s++;
+  }
   return s;
 }
 }  // namespace details
@@ -68,7 +76,8 @@ Char const *basic_strend(Char const *s) {
 /// In case of surcess output is returned, if the input sequence is illegal,
 /// or there is not enough room NULL is returned
 ///
-inline char *narrow(char *output, size_t output_size, wchar_t const *source) {
+inline auto narrow(char *output, size_t output_size, wchar_t const *source)
+    -> char * {
   return basic_convert(output, output_size, source,
                        details::basic_strend(source));
 }
@@ -79,8 +88,8 @@ inline char *narrow(char *output, size_t output_size, wchar_t const *source) {
 /// In case of surcess output is returned, if the input sequence is illegal,
 /// or there is not enough room NULL is returned
 ///
-inline char *narrow(char *output, size_t output_size, wchar_t const *begin,
-                    wchar_t const *end) {
+inline auto narrow(char *output, size_t output_size, wchar_t const *begin,
+                   wchar_t const *end) -> char * {
   return basic_convert(output, output_size, begin, end);
 }
 ///
@@ -90,7 +99,8 @@ inline char *narrow(char *output, size_t output_size, wchar_t const *begin,
 /// In case of surcess output is returned, if the input sequence is illegal,
 /// or there is not enough room NULL is returned
 ///
-inline wchar_t *widen(wchar_t *output, size_t output_size, char const *source) {
+inline auto widen(wchar_t *output, size_t output_size, char const *source)
+    -> wchar_t * {
   return basic_convert(output, output_size, source,
                        details::basic_strend(source));
 }
@@ -101,8 +111,8 @@ inline wchar_t *widen(wchar_t *output, size_t output_size, char const *source) {
 /// In case of surcess output is returned, if the input sequence is illegal,
 /// or there is not enough room NULL is returned
 ///
-inline wchar_t *widen(wchar_t *output, size_t output_size, char const *begin,
-                      char const *end) {
+inline auto widen(wchar_t *output, size_t output_size, char const *begin,
+                  char const *end) -> wchar_t * {
   return basic_convert(output, output_size, begin, end);
 }
 
@@ -112,8 +122,8 @@ inline wchar_t *widen(wchar_t *output, size_t output_size, char const *begin,
 /// nowide::conv::conversion_error is thrown in a case of a error
 ///
 template <typename Allocator = std::allocator<char>>
-inline std::string narrow(wchar_t const *s,
-                          const Allocator &alloc = Allocator()) {
+inline auto narrow(wchar_t const *s, const Allocator &alloc = Allocator())
+    -> std::string {
   return nowide::conv::utf_to_utf<char>(s, alloc);
 }
 ///
@@ -123,7 +133,8 @@ inline std::string narrow(wchar_t const *s,
 /// nowide::conv::conversion_error is thrown in a case of a error
 ///
 template <typename Allocator = std::allocator<wchar_t>>
-inline std::wstring widen(char const *s, const Allocator &alloc = Allocator()) {
+inline auto widen(char const *s, const Allocator &alloc = Allocator())
+    -> std::wstring {
   return nowide::conv::utf_to_utf<wchar_t>(s, alloc);
 }
 ///
@@ -132,8 +143,8 @@ inline std::wstring widen(char const *s, const Allocator &alloc = Allocator()) {
 /// nowide::conv::conversion_error is thrown in a case of a error
 ///
 template <typename Allocator = std::allocator<char>>
-inline std::string narrow(std::wstring const &s,
-                          const Allocator &alloc = Allocator()) {
+inline auto narrow(std::wstring const &s, const Allocator &alloc = Allocator())
+    -> std::string {
   return nowide::conv::utf_to_utf<char>(s, alloc);
 }
 ///
@@ -143,8 +154,8 @@ inline std::string narrow(std::wstring const &s,
 /// nowide::conv::conversion_error is thrown in a case of a error
 ///
 template <typename Allocator = std::allocator<wchar_t>>
-inline std::wstring widen(std::string const &s,
-                          const Allocator &alloc = Allocator()) {
+inline auto widen(std::string const &s, const Allocator &alloc = Allocator())
+    -> std::wstring {
   return nowide::conv::utf_to_utf<wchar_t>(s, alloc);
 }
 
@@ -154,8 +165,8 @@ inline std::wstring widen(std::string const &s,
 /// nowide::conv::conversion_error is thrown in a case of a error
 ///
 template <typename Allocator = std::allocator<char>>
-inline std::string narrow(wchar_t const *begin, wchar_t const *end,
-                          const Allocator &alloc = Allocator()) {
+inline auto narrow(wchar_t const *begin, wchar_t const *end,
+                   const Allocator &alloc = Allocator()) -> std::string {
   return nowide::conv::utf_to_utf<char>(begin, end, alloc);
 }
 

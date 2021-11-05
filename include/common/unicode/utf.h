@@ -38,17 +38,19 @@ namespace utf {
 /// \endcond
 
 /// The integral type that can hold a Unicode code point.
-typedef std::uint32_t code_point;
+using code_point = std::uint32_t;
 
 /// Special constant that defines illegal code point.
-static const code_point illegal = 0xFFFFFFFFu;
+static const code_point illegal = 0xFFFFFFFFU;
 
 /// Special constant that defines incomplete code point.
-static const code_point incomplete = 0xFFFFFFFEu;
+static const code_point incomplete = 0xFFFFFFFEU;
 
 /// Checks if \a v is a valid code point.
-inline bool is_valid_codepoint(code_point v) {
-  if (v > 0x10FFFF) return false;
+inline auto is_valid_codepoint(code_point v) -> bool {
+  if (v > 0x10FFFF) {
+    return false;
+  }
   return (v < 0xD800 || v > 0xDFFF);  // surrogates
 }
 
@@ -141,63 +143,80 @@ struct utf_traits;
 
 template <typename CharType>
 struct utf_traits<CharType, 1> {
-  typedef CharType char_type;
+  using char_type = CharType;
 
   static int trail_length(char_type ci) {
-    unsigned char c = static_cast<unsigned char>(ci);
-    if (c < 128) return 0;
+    auto c = static_cast<unsigned char>(ci);
+    if (c < 128) {
+      return 0;
+    }
     if (NOWIDE_UNLIKELY(c < 194)) return -1;
-    if (c < 224) return 1;
-    if (c < 240) return 2;
-    if (NOWIDE_LIKELY(c <= 244)) return 3;
+    if (c < 224) {
+      return 1;
+    }
+    if (c < 240) {
+      return 2;
+    }
+    if (NOWIDE_LIKELY(c <= 244)) {
+      return 3;
+    }
     return -1;
   }
 
   static const std::size_t max_width = 4;
 
-  static std::size_t width(code_point value) {
+  static auto width(code_point value) -> std::size_t {
     if (value <= 0x7F) {
       return 1;
-    } else if (value <= 0x7FF) {
-      return 2;
-    } else if (NOWIDE_LIKELY(value <= 0xFFFF)) {
-      return 3;
-    } else {
-      return 4;
     }
+    if (value <= 0x7FF) {
+      return 2;
+    }
+    if (NOWIDE_LIKELY(value <= 0xFFFF)) {
+      return 3;
+    }
+    return 4;
   }
 
-  static bool is_trail(char_type ci) {
-    unsigned char c = static_cast<unsigned char>(ci);
+  static auto is_trail(char_type ci) -> bool {
+    auto c = static_cast<unsigned char>(ci);
     return (c & 0xC0) == 0x80;
   }
 
-  static bool is_lead(char_type ci) { return !is_trail(ci); }
+  static auto is_lead(char_type ci) -> bool { return !is_trail(ci); }
 
   template <typename Iterator>
-  static code_point decode(Iterator &p, Iterator e) {
-    if (NOWIDE_UNLIKELY(p == e)) return incomplete;
+  static auto decode(Iterator &p, Iterator e) -> code_point {
+    if (NOWIDE_UNLIKELY(p == e)) {
+      return incomplete;
+    }
 
     auto lead = *p++;
 
     // First byte is fully validated here
     int trail_size = trail_length(lead);
 
-    if (NOWIDE_UNLIKELY(trail_size < 0)) return illegal;
+    if (NOWIDE_UNLIKELY(trail_size < 0)) {
+      return illegal;
+    }
 
     //
     // Ok as only ASCII may be of size = 0
     // also optimize for ASCII text
     //
-    if (trail_size == 0) return static_cast<code_point>(lead);
+    if (trail_size == 0) {
+      return static_cast<code_point>(lead);
+    }
 
     code_point c = lead & ((1 << (6 - trail_size)) - 1);
 
     // Read the rest
-    char tmp;
+    char tmp = 0;
     switch (trail_size) {
       case 3:
-        if (NOWIDE_UNLIKELY(p == e)) return incomplete;
+        if (NOWIDE_UNLIKELY(p == e)) {
+          return incomplete;
+        }
         tmp = *p++;
         if (!is_trail(tmp)) return illegal;
         c = (c << 6) | (tmp & 0x3F);
@@ -206,18 +225,26 @@ struct utf_traits<CharType, 1> {
 #endif  // __clang__
         /* FALLTHRU */
       case 2:
-        if (NOWIDE_UNLIKELY(p == e)) return incomplete;
+        if (NOWIDE_UNLIKELY(p == e)) {
+          return incomplete;
+        }
         tmp = *p++;
-        if (!is_trail(tmp)) return illegal;
+        if (!is_trail(tmp)) {
+          return illegal;
+        }
         c = (c << 6) | (tmp & 0x3F);
 #if defined(__clang__)
         [[clang::fallthrough]];
 #endif  // __clang__
         /* FALLTHRU */
       case 1:
-        if (NOWIDE_UNLIKELY(p == e)) return incomplete;
+        if (NOWIDE_UNLIKELY(p == e)) {
+          return incomplete;
+        }
         tmp = *p++;
-        if (!is_trail(tmp)) return illegal;
+        if (!is_trail(tmp)) {
+          return illegal;
+        }
         c = (c << 6) | (tmp & 0x3F);
         break;
       default:
@@ -226,45 +253,51 @@ struct utf_traits<CharType, 1> {
 
     // Check code point validity: no surrogates and
     // valid range
-    if (NOWIDE_UNLIKELY(!is_valid_codepoint(c))) return illegal;
+    if (NOWIDE_UNLIKELY(!is_valid_codepoint(c))) {
+      return illegal;
+    }
 
     // make sure it is the most compact representation
-    if (NOWIDE_UNLIKELY(width(c) != static_cast<std::size_t>(trail_size + 1)))
+    if (NOWIDE_UNLIKELY(width(c) != static_cast<std::size_t>(trail_size + 1))) {
       return illegal;
-
-    return c;
-  }
-
-  template <typename Iterator>
-  static code_point decode_valid(Iterator &p) {
-    unsigned char lead = *p++;
-    if (lead < 192) return lead;
-
-    int trail_size;
-
-    if (lead < 224)
-      trail_size = 1;
-    else if (NOWIDE_LIKELY(lead < 240))  // non-BMP rare
-      trail_size = 2;
-    else
-      trail_size = 3;
-
-    code_point c = lead & ((1 << (6 - trail_size)) - 1);
-
-    switch (trail_size) {
-      case 3:
-        c = (c << 6) | (static_cast<unsigned char>(*p++) & 0x3F);
-      case 2:
-        c = (c << 6) | (static_cast<unsigned char>(*p++) & 0x3F);
-      case 1:
-        c = (c << 6) | (static_cast<unsigned char>(*p++) & 0x3F);
     }
 
     return c;
   }
 
   template <typename Iterator>
-  static Iterator encode(code_point value, Iterator out) {
+  static auto decode_valid(Iterator &p) -> code_point {
+    unsigned char lead = *p++;
+    if (lead < 192) {
+      return lead;
+    }
+
+    int trail_size = 0;
+
+    if (lead < 224) {
+      trail_size = 1;
+    } else if (NOWIDE_LIKELY(lead < 240)) {  // non-BMP rare
+      trail_size = 2;
+    } else {
+      trail_size = 3;
+    }
+
+    code_point c = lead & ((1 << (6 - trail_size)) - 1);
+
+    switch (trail_size) {  // NOLINT(hicpp-multiway-paths-covered)
+      case 3:              // NOLINT(bugprone-branch-clone)
+        c = (c << 6) | (static_cast<unsigned char>(*p++) & 0x3FU);
+      case 2:
+        c = (c << 6) | (static_cast<unsigned char>(*p++) & 0x3FU);
+      case 1:
+        c = (c << 6) | (static_cast<unsigned char>(*p++) & 0x3FU);
+    }
+
+    return c;
+  }
+
+  template <typename Iterator>
+  static auto encode(code_point value, Iterator out) -> Iterator {
     if (value <= 0x7F) {
       *out++ = static_cast<char_type>(value);
     } else if (value <= 0x7FF) {
@@ -295,38 +328,51 @@ struct utf_traits<CharType, 2> {
   static bool is_second_surrogate(std::uint16_t x) {
     return 0xDC00 <= x && x <= 0xDFFF;
   }
-  static code_point combine_surrogate(std::uint16_t w1, std::uint16_t w2) {
+  static auto combine_surrogate(std::uint16_t w1, std::uint16_t w2)
+      -> code_point {
     return ((code_point(w1 & 0x3FF) << 10) | (w2 & 0x3FF)) + 0x10000;
   }
   static int trail_length(char_type c) {
-    if (is_first_surrogate(c)) return 1;
-    if (is_second_surrogate(c)) return -1;
+    if (is_first_surrogate(c)) {
+      return 1;
+    }
+    if (is_second_surrogate(c)) {
+      return -1;
+    }
     return 0;
   }
   ///
   /// Returns true if c is trail code unit, always false for UTF-32
   ///
-  static bool is_trail(char_type c) { return is_second_surrogate(c); }
+  static auto is_trail(char_type c) -> bool { return is_second_surrogate(c); }
   ///
   /// Returns true if c is lead code unit, always true of UTF-32
   ///
-  static bool is_lead(char_type c) { return !is_second_surrogate(c); }
+  static auto is_lead(char_type c) -> bool { return !is_second_surrogate(c); }
 
   template <typename It>
-  static code_point decode(It &current, It last) {
-    if (NOWIDE_UNLIKELY(current == last)) return incomplete;
+  static auto decode(It &current, It last) -> code_point {
+    if (NOWIDE_UNLIKELY(current == last)) {
+      return incomplete;
+    }
     std::uint16_t w1 = *current++;
     if (NOWIDE_LIKELY(w1 < 0xD800 || 0xDFFF < w1)) {
       return w1;
     }
-    if (w1 > 0xDBFF) return illegal;
-    if (current == last) return incomplete;
+    if (w1 > 0xDBFF) {
+      return illegal;
+    }
+    if (current == last) {
+      return incomplete;
+    }
     std::uint16_t w2 = *current++;
-    if (w2 < 0xDC00 || 0xDFFF < w2) return illegal;
+    if (w2 < 0xDC00 || 0xDFFF < w2) {
+      return illegal;
+    }
     return combine_surrogate(w1, w2);
   }
   template <typename It>
-  static code_point decode_valid(It &current) {
+  static auto decode_valid(It &current) -> code_point {
     std::uint16_t w1 = *current++;
     if (NOWIDE_LIKELY(w1 < 0xD800 || 0xDFFF < w1)) {
       return w1;
@@ -336,9 +382,11 @@ struct utf_traits<CharType, 2> {
   }
 
   static const std::size_t max_width = 2;
-  static std::size_t width(code_point u) { return u >= 0x10000 ? 2 : 1; }
+  static auto width(code_point u) -> std::size_t {
+    return u >= 0x10000 ? 2 : 1;
+  }
   template <typename It>
-  static It encode(code_point u, It out) {
+  static auto encode(code_point u, It out) -> It {
     if (NOWIDE_LIKELY(u <= 0xFFFF)) {
       *out++ = static_cast<char_type>(u);
     } else {
@@ -352,30 +400,36 @@ struct utf_traits<CharType, 2> {
 
 template <typename CharType>
 struct utf_traits<CharType, 4> {
-  typedef CharType char_type;
-  static int trail_length(char_type c) {
-    if (is_valid_codepoint(c)) return 0;
+  using char_type = CharType;
+  static auto trail_length(char_type c) -> int {
+    if (is_valid_codepoint(c)) {
+      return 0;
+    }
     return -1;
   }
-  static bool is_trail(char_type /*c*/) { return false; }
-  static bool is_lead(char_type /*c*/) { return true; }
+  static auto is_trail(char_type /*c*/) -> bool { return false; }
+  static auto is_lead(char_type /*c*/) -> bool { return true; }
 
   template <typename It>
-  static code_point decode_valid(It &current) {
+  static auto decode_valid(It &current) -> code_point {
     return *current++;
   }
 
   template <typename It>
-  static code_point decode(It &current, It last) {
-    if (NOWIDE_UNLIKELY(current == last)) return nowide::utf::incomplete;
-    code_point c = static_cast<code_point>(*current++);
-    if (NOWIDE_UNLIKELY(!is_valid_codepoint(c))) return nowide::utf::illegal;
+  static auto decode(It &current, It last) -> code_point {
+    if (NOWIDE_UNLIKELY(current == last)) {
+      return nowide::utf::incomplete;
+    }
+    auto c = static_cast<code_point>(*current++);
+    if (NOWIDE_UNLIKELY(!is_valid_codepoint(c))) {
+      return nowide::utf::illegal;
+    }
     return c;
   }
   static const std::size_t max_width = 1;
-  static std::size_t width(code_point /*u*/) { return 1; }
+  static auto width(code_point /*u*/) -> std::size_t { return 1; }
   template <typename It>
-  static It encode(code_point u, It out) {
+  static auto encode(code_point u, It out) -> It {
     *out++ = static_cast<char_type>(u);
     return out;
   }

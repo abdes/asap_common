@@ -22,9 +22,9 @@ namespace conv {
 template <typename CharOut, typename CharIn,
           typename Traits = std::char_traits<CharOut>,
           class Allocator = std::allocator<CharOut>>
-std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
-    CharIn const *begin, CharIn const *end,
-    const Allocator &alloc = Allocator()) {
+auto utf_to_utf(CharIn const *begin, CharIn const *end,
+                const Allocator &alloc = Allocator())
+    -> std::basic_string<CharOut, Traits, Allocator> {
   std::basic_string<CharOut, Traits, Allocator> result(alloc);
   auto range_size = end - begin;
   if (range_size > 0) {
@@ -33,18 +33,16 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
             typename std::basic_string<CharOut, Traits, Allocator>::size_type>(
             range_size));
   }
-  typedef std::back_insert_iterator<
-      std::basic_string<CharOut, Traits, Allocator>>
-      inserter_type;
+  using inserter_type =
+      std::back_insert_iterator<std::basic_string<CharOut, Traits, Allocator>>;
   inserter_type inserter(result);
-  utf::code_point c;
+  utf::code_point c = 0;
   while (begin != end) {
     c = utf::utf_traits<CharIn>::template decode<CharIn const *>(begin, end);
     if (c == utf::illegal || c == utf::incomplete) {
       throw conversion_error();
-    } else {
-      utf::utf_traits<CharOut>::template encode<inserter_type>(c, inserter);
     }
+    utf::utf_traits<CharOut>::template encode<inserter_type>(c, inserter);
   }
   return result;
 }
@@ -53,10 +51,12 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
 template <typename CharOut, typename CharIn,
           typename Traits = std::char_traits<CharOut>,
           class Allocator = std::allocator<CharOut>>
-std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
-    CharIn const *str, const Allocator &alloc = Allocator()) {
+auto utf_to_utf(CharIn const *str, const Allocator &alloc = Allocator())
+    -> std::basic_string<CharOut, Traits, Allocator> {
   CharIn const *end = str;
-  while (*end) end++;
+  while (*end) {
+    end++;
+  }
   return utf_to_utf<CharOut, CharIn, Traits, Allocator>(str, end, alloc);
 }
 
@@ -64,9 +64,9 @@ std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
 template <typename CharOut, typename CharIn,
           typename Traits = std::char_traits<CharOut>,
           class Allocator = std::allocator<CharOut>>
-std::basic_string<CharOut, Traits, Allocator> utf_to_utf(
-    std::basic_string<CharIn> const &str,
-    const Allocator &alloc = Allocator()) {
+auto utf_to_utf(std::basic_string<CharIn> const &str,
+                const Allocator &alloc = Allocator())
+    -> std::basic_string<CharOut, Traits, Allocator> {
   return utf_to_utf<CharOut, CharIn, Traits, Allocator>(
       str.c_str(), str.c_str() + str.size(), alloc);
 }

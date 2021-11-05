@@ -31,7 +31,7 @@ namespace logging {
 // ---------------------------------------------------------------------------
 
 /// The default logging format
-const char *Logger::DEFAULT_LOG_FORMAT =
+const char *const Logger::DEFAULT_LOG_FORMAT =
     "[%Y-%m-%d %T.%e] [%t] [%^%l%$] [%n] %v";
 
 // Synchronization mutex for sinks
@@ -51,9 +51,9 @@ Logger::Logger(std::string name, spdlog::sink_ptr sink) {
   logger_->flush_on(spdlog::level::critical);
 }
 
-Logger::~Logger() {}
+Logger::~Logger() = default;
 
-spdlog::logger &Registry::GetLogger(std::string const &name) {
+auto Registry::GetLogger(std::string const &name) -> spdlog::logger & {
   std::lock_guard<std::recursive_mutex> lock(loggers_mutex_);
   auto &loggers = Loggers();
   auto search = loggers.find(name);
@@ -82,7 +82,7 @@ DelegatingSink::DelegatingSink(spdlog::sink_ptr delegate)
     : sink_delegate_(std::move(delegate)) {}
 HEDLEY_DIAGNOSTIC_POP
 
-DelegatingSink::~DelegatingSink() {}
+DelegatingSink::~DelegatingSink() = default;
 
 // ---------------------------------------------------------------------------
 // Registry
@@ -108,7 +108,7 @@ void Registry::PopSink() {
   }
 }
 
-std::stack<spdlog::sink_ptr> &Registry::sinks_() {
+auto Registry::sinks_() -> std::stack<spdlog::sink_ptr> & {
   static std::stack<spdlog::sink_ptr> sinks;
   return sinks;
 }
@@ -127,17 +127,18 @@ void Registry::SetLogFormat(const std::string &log_format) {
   auto &loggers = Loggers();
   for (auto &log : loggers) {
     // Not thread safe
-    std::lock_guard<std::mutex> log_lock(*log.second.logger_mutex_.get());
+    std::lock_guard<std::mutex> log_lock(*log.second.logger_mutex_);
     log.second.logger_->set_pattern(log_format);
   }
 }
 
-std::unordered_map<std::string, Logger> &Registry::Loggers() {
+auto Registry::Loggers() -> std::unordered_map<std::string, Logger> & {
   static auto &loggers_static = predefined_loggers_();
   return loggers_static;
 }
 
-std::unordered_map<std::string, Logger> &Registry::predefined_loggers_() {
+auto Registry::predefined_loggers_()
+    -> std::unordered_map<std::string, Logger> & {
   static std::unordered_map<std::string, Logger> all_loggers;
   all_loggers.emplace("misc", Logger("misc", delegating_sink()));
   all_loggers.emplace("testing", Logger("testing", delegating_sink()));
@@ -145,12 +146,12 @@ std::unordered_map<std::string, Logger> &Registry::predefined_loggers_() {
   return all_loggers;
 }
 
-std::shared_ptr<DelegatingSink> &Registry::delegating_sink() {
+auto Registry::delegating_sink() -> std::shared_ptr<DelegatingSink> & {
   static auto sink_static = std::shared_ptr<DelegatingSink>(delegating_sink_());
   return sink_static;
 }
 
-DelegatingSink *Registry::delegating_sink_() {
+auto Registry::delegating_sink_() -> DelegatingSink * {
   // Add a default console sink
 #if defined _WIN32 && !defined(__cplusplus_winrt)
   auto default_sink =
@@ -160,7 +161,7 @@ DelegatingSink *Registry::delegating_sink_() {
       std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
 #endif
 
-  static auto sink = new DelegatingSink(default_sink);
+  static auto *sink = new DelegatingSink(default_sink);
   return sink;
 }
 
@@ -175,7 +176,7 @@ DelegatingSink *Registry::delegating_sink_() {
  * @param line source code line number.
  * @return a formatted string with the file name and line number.
  */
-std::string FormatFileAndLine(char const *file, char const *line) {
+auto FormatFileAndLine(char const *file, char const *line) -> std::string {
   constexpr static int FILE_MAX_LENGTH = 70;
   std::ostringstream ostr;
   std::string fstr(file);

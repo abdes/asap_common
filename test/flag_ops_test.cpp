@@ -19,12 +19,13 @@
 #include <common/flag_ops.h>
 
 #include <catch2/catch.hpp>
+#include <cstdint>
 
 namespace asap {
 
 TEST_CASE("Flag / Set", "[common][flag]") {
-  unsigned long mask = 0x100010;
-  unsigned long flag = 0x1000;
+  std::uint64_t mask = 0x100010;
+  std::uint64_t flag = 0x1000;
 
   FlagSet(mask, flag);
   // bit corresponding to flag is set
@@ -41,8 +42,8 @@ TEST_CASE("Flag / Set", "[common][flag]") {
 }
 
 TEST_CASE("Flag / Clear", "[common][flag]") {
-  unsigned long mask = 0x100010;
-  unsigned long flag = 0x10;
+  std::uint64_t mask = 0x100010;
+  std::uint64_t flag = 0x10;
 
   FlagClear(mask, flag);
   // bit corresponding to flag is cleared
@@ -59,8 +60,8 @@ TEST_CASE("Flag / Clear", "[common][flag]") {
 }
 
 TEST_CASE("Flag / Flip", "[common][flag]") {
-  unsigned long mask = 0x100010;
-  unsigned long flag = 0x10;
+  std::uint64_t mask = 0x100010;
+  std::uint64_t flag = 0x10;
 
   FlagFlip(mask, flag);
   // bit corresponding to flag is cleared
@@ -83,8 +84,8 @@ TEST_CASE("Flag / Flip", "[common][flag]") {
 }
 
 TEST_CASE("Flag / Test", "[common][flag]") {
-  unsigned long mask = 0x100010;
-  unsigned long flag = 0x10;
+  std::uint64_t mask = 0x100010;
+  std::uint64_t flag = 0x10;
 
   REQUIRE(FlagTest(mask, flag));
   REQUIRE(FlagTest(mask, mask));

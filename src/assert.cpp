@@ -46,7 +46,7 @@
 #endif
 
 namespace {
-inline char const* demangle_alloc(char const* name) noexcept;
+inline auto demangle_alloc(char const* name) noexcept -> char const*;
 inline void demangle_free(char const* name) noexcept;
 
 class scoped_demangled_name {
@@ -59,13 +59,13 @@ class scoped_demangled_name {
 
   ~scoped_demangled_name() noexcept { demangle_free(m_p); }
 
-  char const* get() const noexcept { return m_p; }
+  auto get() const noexcept -> char const* { return m_p; }
 
   scoped_demangled_name(scoped_demangled_name const&) = delete;
   scoped_demangled_name& operator=(scoped_demangled_name const&) = delete;
 };
 
-inline char const* demangle_alloc(char const* name) noexcept {
+inline auto demangle_alloc(char const* name) noexcept -> char const* {
   int status = 0;
   std::size_t size = 0;
   return abi::__cxa_demangle(name, nullptr, &size, &status);
@@ -75,10 +75,12 @@ inline void demangle_free(char const* name) noexcept {
   std::free(const_cast<char*>(name));
 }
 
-inline std::string demangle(char const* name) {
+inline auto demangle(char const* name) -> std::string {
   scoped_demangled_name demangled_name(name);
   char const* p = demangled_name.get();
-  if (!p) p = name;
+  if (p == nullptr) {
+    p = name;
+  }
   return p;
 }
 }  // namespace
@@ -96,7 +98,7 @@ inline std::string demangle(char const* name) { return name; }
 #include <execinfo.h>
 
 namespace {
-void print_backtrace(char* out, int len, int max_depth, void*) {
+void print_backtrace(char* out, int len, int max_depth, void* /*unused*/) {
   void* stack[50];
   int size = ::backtrace(stack, 50);
   char** symbols = ::backtrace_symbols(stack, size);
@@ -106,7 +108,9 @@ void print_backtrace(char* out, int len, int max_depth, void*) {
                             demangle(symbols[i]).c_str());
     out += ret;
     len -= ret;
-    if (i - 1 == max_depth && max_depth > 0) break;
+    if (i - 1 == max_depth && max_depth > 0) {
+      break;
+    }
   }
 
   ::free(symbols);
@@ -291,7 +295,7 @@ void assert_fail(char const* expr, int line, char const* file,
       "%s%s\n"
       "stack:\n"
       "%s\n",
-      message, file, line, function, expr, value ? value : "",
+      message, file, line, function, expr, value != nullptr ? value : "",
       value ? "\n" : "", stack);
   ::abort();
 }

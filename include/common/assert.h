@@ -157,7 +157,7 @@ void ASAP_COMMON_API assert_fail(const char *expr, int line, char const *file,
     if (a) {                                                   \
     } else {                                                   \
       std::stringstream __s__;                                 \
-      __s__ << #x ": " << x;                                   \
+      __s__ << #x ": " << (x);                                 \
       asap::assert_fail(#a, __LINE__, __FILE__, ASAP_FUNCTION, \
                         __s__.str().c_str(), 0);               \
     }                                                          \
@@ -181,7 +181,7 @@ void ASAP_COMMON_API assert_fail(const char *expr, int line, char const *file,
 #define ASAP_ASSERT_FAIL_VAL(x)                                             \
   do {                                                                      \
     std::stringstream __s__;                                                \
-    __s__ << #x ": " << x;                                                  \
+    __s__ << #x ": " << (x);                                                \
     asap::assert_fail("<unconditional>", __LINE__, __FILE__, ASAP_FUNCTION, \
                       __s__.str().c_str(), 0);                              \
   }                                                                         \

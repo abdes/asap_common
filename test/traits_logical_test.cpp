@@ -34,29 +34,29 @@ HEDLEY_DIAGNOSTIC_PUSH
 
 TEST_CASE("Conjunction_typedef", "[common][traits][logical]") {
   // Check for required typedefs
-  typedef conjunction<std::true_type, std::true_type> test_type;
-  typedef test_type::value_type value_type;
-  typedef test_type::type type;
-  typedef test_type::type::value_type type_value_type;
-  typedef test_type::type::type type_type;
+  using test_type = conjunction<std::true_type, std::true_type>;
+  using value_type = test_type::value_type;
+  using type = test_type::type;
+  using type_value_type = test_type::type::value_type;
+  using type_type = test_type::type::type;
 }
 
 TEST_CASE("Disjunction_typedef", "[common][traits][logical]") {
   // Check for required typedefs
-  typedef disjunction<std::false_type, std::true_type> test_type;
-  typedef test_type::value_type value_type;
-  typedef test_type::type type;
-  typedef test_type::type::value_type type_value_type;
-  typedef test_type::type::type type_type;
+  using test_type = disjunction<std::false_type, std::true_type>;
+  using value_type = test_type::value_type;
+  using type = test_type::type;
+  using type_value_type = test_type::type::value_type;
+  using type_type = test_type::type::type;
 }
 
 TEST_CASE("Negation_typedef", "[common][traits][logical]") {
   // Check for required typedefs
-  typedef negation<std::false_type> test_type;
-  typedef test_type::value_type value_type;
-  typedef test_type::type type;
-  typedef test_type::type::value_type type_value_type;
-  typedef test_type::type::type type_type;
+  using test_type = negation<std::false_type>;
+  using value_type = test_type::value_type;
+  using type = test_type::type;
+  using type_value_type = test_type::type::value_type;
+  using type_type = test_type::type::type;
 }
 
 TEST_CASE("Value", "[common][traits][logical]") {
