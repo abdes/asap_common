@@ -62,7 +62,8 @@ class scoped_demangled_name {
   auto get() const noexcept -> char const* { return m_p; }
 
   scoped_demangled_name(scoped_demangled_name const&) = delete;
-  scoped_demangled_name& operator=(scoped_demangled_name const&) = delete;
+  auto operator=(scoped_demangled_name const&)
+      -> scoped_demangled_name& = delete;
 };
 
 inline auto demangle_alloc(char const* name) noexcept -> char const* {
@@ -296,7 +297,7 @@ void assert_fail(char const* expr, int line, char const* file,
       "stack:\n"
       "%s\n",
       message, file, line, function, expr, value != nullptr ? value : "",
-      value ? "\n" : "", stack);
+      value != nullptr ? "\n" : "", stack);
   ::abort();
 }
 }  // namespace asap
