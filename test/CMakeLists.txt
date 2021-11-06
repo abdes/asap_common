@@ -37,7 +37,6 @@ set(public_headers)
 
 set(sources
     "assert_test.cpp"
-    "logging_test.cpp"
     "traits_logical_test.cpp"
     "unicode_convert_test.cpp"
     "flag_ops_test.cpp"
