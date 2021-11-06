@@ -87,11 +87,13 @@ inline auto demangle(char const* name) -> std::string {
 }  // namespace
 #else   // !ASAP_HAS_CXXABI_H
 namespace {
-inline char const* demangle_alloc(char const* name) noexcept { return name; }
+inline auto demangle_alloc(char const* name) noexcept -> char const* {
+  return name;
+}
 
-inline void demangle_free(char const*) noexcept {}
+inline void demangle_free(char const* /*unused*/) noexcept {}
 
-inline std::string demangle(char const* name) { return name; }
+inline auto demangle(char const* name) -> std::string { return name; }
 }  // namespace
 #endif  // ASAP_HAS_CXXABI_H
 
