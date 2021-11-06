@@ -132,9 +132,9 @@ asap_library(
   ${private_compile_options})
 
 set_target_properties(${target} PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
+   CXX_STANDARD 11
+   CXX_STANDARD_REQUIRED YES
+   CXX_EXTENSIONS NO
 )
 
 # ------------------------------------------------------------------------------
