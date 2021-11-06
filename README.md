@@ -1,11 +1,7 @@
-[![repo on GitHub](https://img.shields.io/badge/repo-GitHub-brightgreen.svg)](https://github.com/abdes/asap_common)
-[![repo on GitLab](https://img.shields.io/badge/repo-GitLab-brightgreen.svg)](https://gitlab.com/absassi/asap_common)
-
 # Common submodule for the asap project
 
-See the asap project on [github](https://github.com/abdes/asap) or 
-[gitlab](https://gitlab.com/absassi/asap) for a functional minimal starter project
-that uses this submodule.
+See the asap project on [github](https://github.com/abdes/asap) for a functional
+minimal starter project that uses this submodule.
 
 This submodule is not intended to be used alone. Instead, refer to the asap
 project for the recommended container to fully leverage this submodule and add other 
