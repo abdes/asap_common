@@ -24,7 +24,11 @@ class ASAP_COMMON_API NonCopiable {
   /// Copy constructor (deleted)
   NonCopiable(const NonCopiable &) = delete;
   /// Copy assignment operator (deleted)
-  NonCopiable &operator=(const NonCopiable &) = delete;
+  auto operator=(const NonCopiable &) -> NonCopiable & = delete;
+  /// Move constructor (default)
+  NonCopiable(NonCopiable &&) = default;
+  /// Move assignment operator (default)
+  auto operator=(NonCopiable &&) -> NonCopiable & = default;
 
  protected:
   /*
@@ -34,9 +38,9 @@ class ASAP_COMMON_API NonCopiable {
    * destructor can be enforced by declaring both and marking them default.
    */
   /// Default constructor (default)
-  NonCopiable() = default;
+  NonCopiable();
   /// Destructor (default)
-  virtual ~NonCopiable() = default;
+  virtual ~NonCopiable();
 };
 
 #if defined(__clang__)

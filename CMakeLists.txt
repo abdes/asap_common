@@ -74,7 +74,6 @@ set(public_headers
     "include/common/platform.h"
     "include/common/assert.h"
     "include/common/non_copiable.h"
-    "include/common/logging.h"
     "include/common/flag_ops.h"
     # traits module
     "include/common/traits/logical.h"
@@ -86,7 +85,7 @@ set(public_headers
     # hedley module
     "include/hedley/hedley.h")
 
-set(sources "src/assert.cpp" "src/logging.cpp" ${public_headers})
+set(sources "src/assert.cpp" "src/non_copiable.cpp" ${public_headers})
 
 # ------------------------------------------------------------------------------
 # Include dirs
@@ -106,7 +105,6 @@ set(private_compile_options)
 # Libraries
 # ------------------------------------------------------------------------------
 
-set(public_libraries spdlog::spdlog)
 if(WIN32)
   list(APPEND public_libraries dbghelp)
 endif(WIN32)
@@ -163,7 +161,7 @@ tidy_target(${target})
 configure_doxyfile(
   ${target}
   "\"Common Module\""
-  "\"Provides common basic building blocks such as portability, logging, assertions, etc.\""
+  "\"Provides common basic building blocks such as portability, assertions, etc.\""
   "${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_doxygen_target(${target})
