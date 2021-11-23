@@ -105,6 +105,10 @@ set(private_compile_options)
 # Libraries
 # ------------------------------------------------------------------------------
 
+# GSL is so basic that we make it available for any module that uses the 
+# 'common' submodule.
+set(public_libraries Microsoft.GSL::GSL)
+
 if(WIN32)
   list(APPEND public_libraries dbghelp)
 endif(WIN32)
